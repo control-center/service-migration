@@ -12,7 +12,7 @@
 # limitations under the License.
 
 IMAGE_NAME      := zenoss/service-migration
-IMAGE_VERSION   := v1
+IMAGE_VERSION   := $(shell cat servicemigration/VERSION)
 
 default: buildImage
 

@@ -1,8 +1,8 @@
-
 import sys
 import json
 
 from version import versioned
+
 
 class Service():
 
@@ -16,7 +16,6 @@ class Service():
     @description.setter
     def description(self, value):
         self.__data["Description"] = value
-
 
 
 class ServiceContext():
