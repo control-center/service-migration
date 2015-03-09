@@ -12030,7 +12030,7 @@
        "tsd.storage.enable_compaction": "False"
      },
      "Startup": "redis-server /etc/redis.conf \u0026 /bin/sh -c \"cd /opt/zenoss \u0026\u0026 exec ./zproxy/sbin/zproxy start\"",
-     "Description": "an_unlikely-description",
+     "Description": "Zenoss Core",
      "Tags": [
        "daemon"
      ],

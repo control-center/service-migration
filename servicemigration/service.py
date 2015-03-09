@@ -1,5 +1,6 @@
 import sys
 import json
+import copy
 
 from version import versioned
 
@@ -8,15 +9,14 @@ class Service():
 
     def __init__(self, data):
         self.__data = data
+        self.description = data["Description"]
+        self.runs = copy.copy(data["Runs"])
 
-    @property
-    def description(self):
-        return self.__data["Description"]
-
-    @description.setter
-    def description(self, value):
-        self.__data["Description"] = value
-
+    def __toObject(self):
+        newObj = copy.deepcopy(self.__data)
+        newObj["Description"] = self.description
+        newObj["Runs"] = self.runs
+        return newObj
 
 class ServiceContext():
 
@@ -33,7 +33,7 @@ class ServiceContext():
             filename = sys.argv[2]
         serviceList = []
         for service in self.services:
-            serviceList.append(service._Service__data)
+            serviceList.append(service._Service__toObject())
         f = open(filename, 'w')
         f.write(json.dumps(serviceList, indent=4, sort_keys=True))
         f.close()

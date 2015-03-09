@@ -8,6 +8,7 @@ def myFilter(item):
 
 for service in filter(myFilter, ctx.services):
     service.description = "an_unlikely-description"
+    service.runs["foo"] = "bar"
 
 ctx.commit()
 

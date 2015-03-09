@@ -15,13 +15,10 @@ class ServiceTest(unittest.TestCase):
     def test_commit(self):
         ctx = sm.ServiceContext(INFILENAME)
         ctx.services[0].description = "an_unlikely-description"
+        ctx.services[0].runs["foo"] = "bar"
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         result = filter(lambda x: x.description == "an_unlikely-description", ctx.services)
+        self.assertEqual(len(result), 1)
         self.assertEqual(result[0].description, "an_unlikely-description")
-
-    def test_description(self):
-        ctx = sm.ServiceContext(INFILENAME)
-        ctx.services[0].description = "an_unlikely-description"
-        self.assertEqual(ctx.services[0].description, "an_unlikely-description")
-        
+        self.assertEqual(result[0].runs["foo"], "bar")
