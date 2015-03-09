@@ -8,7 +8,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
 develop-eggs/
 dist/
 downloads/
@@ -53,4 +52,5 @@ docs/_build/
 # PyBuilder
 target/
 
+build/*.py
 out.json
