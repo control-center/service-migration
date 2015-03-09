@@ -5,8 +5,8 @@ FROM python:2.7.9
 
 MAINTAINER Zenoss, Inc <dev@zenoss.com>
 
-RUN mkdir -p /usr/share/serviced/migration/servicemigration
-COPY *.py /usr/share/serviced/migration/servicemigration/
+RUN mkdir -p /usr/share/serviced/migration
+COPY servicemigration /usr/share/serviced/migration/servicemigration
 ENV PYTHONPATH /usr/share/serviced/migration
 
 #
