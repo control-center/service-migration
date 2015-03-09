@@ -19,14 +19,14 @@ default: buildImage
 clean:
 	rm -f servicemigration/*.pyc
 	rm -f tests/*.pyc
-	rm -f build/*.py
+	rm -rf build/servicemigration
 
 #.PHONY: buildImage
 buildImage: copySource
 	docker build -t $(IMAGE_NAME):$(IMAGE_VERSION) build
 
-copySource: test
-	cp servicemigration/*.py build
+copySource: test clean
+	cp -r servicemigration build/servicemigration
 
 test:
 	python -m unittest discover
