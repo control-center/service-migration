@@ -21,7 +21,6 @@ clean:
 	rm -f tests/*.pyc
 	rm -rf build/servicemigration
 
-#.PHONY: buildImage
 buildImage: copySource
 	docker build -t $(IMAGE_NAME):$(IMAGE_VERSION) build
 
@@ -30,3 +29,7 @@ copySource: test clean
 
 test:
 	python -m unittest discover
+
+pushImage:
+	docker push $(IMAGE_NAME):$(IMAGE_VERSION)
+
