@@ -1,6 +1,5 @@
 import sys
 import json
-import copy
 
 from version import versioned
 
