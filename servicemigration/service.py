@@ -1,5 +1,6 @@
 import sys
 import json
+import copy
 
 from version import versioned
 
@@ -25,7 +26,7 @@ class Service():
         """
         Returns a map of string:string defining the service runs.
         """
-        return {} if "Runs" not in self.__data else self.__data["Runs"]
+        return {} if "Runs" not in self.__data else copy.deepcopy(self.__data["Runs"])
 
     def setRuns(self, runs):
         """

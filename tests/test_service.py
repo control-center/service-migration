@@ -14,6 +14,7 @@ class ServiceTest(unittest.TestCase):
         Tests ServiceContext creation.
         """
         ctx = sm.ServiceContext(INFILENAME)
+        self.assertEqual(len(ctx.services), 33)
 
     def test_description_add(self):
         """
@@ -52,6 +53,22 @@ class ServiceTest(unittest.TestCase):
         svc = filter(lambda x: x.getDescription() == "an_unlikely-description", ctx.services)
         self.assertEqual(len(svc), 1)
 
+    def test_runs_local_change_only(self):
+        """
+        Tests that altering a run object from getRuns() does not result
+        to changes in the private data of the service.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
+        runs1 = svc.getRuns()
+        self.assertEqual(len(runs1), 7)
+        runs1["foo"] = "an_unlikely-run"
+        self.assertEqual(len(runs1), 8)
+        runs2 = svc.getRuns()
+        self.assertEqual(len(runs2), 7)
+        if "foo" in runs2:
+            raise ValueError("Changes against the results of getters should not alter private service data.");
+
     def test_runs_add_prev_none(self):
         """
         Tests adding a run where there were previously none.
@@ -60,6 +77,7 @@ class ServiceTest(unittest.TestCase):
         svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
         del svc._Service__data["Runs"]
         runs = svc.getRuns()
+        self.assertEqual(len(runs), 0)
         runs["foo"] = "an_unlikely-run"
         svc.setRuns(runs)
         ctx.commit(OUTFILENAME)
@@ -67,6 +85,7 @@ class ServiceTest(unittest.TestCase):
         svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
         runs = svc.getRuns()
         self.assertEqual(runs["foo"], "an_unlikely-run")
+        self.assertEqual(len(runs), 1)
 
     def test_runs_remove(self):
         """
@@ -75,6 +94,7 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
         runs = svc.getRuns()
+        self.assertEqual(len(runs), 7)
         del runs["apply-custom-patches"]
         del runs["help"]
         svc.setRuns(runs)
@@ -95,6 +115,7 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
         runs = svc.getRuns()
+        self.assertEqual(len(runs), 7)
         runs["foo"] = "an_unlikely-run"
         runs["bar"] = "an_unlikely-run"
         runs["baz"] = "an_unlikely-run"
