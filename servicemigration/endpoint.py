@@ -68,4 +68,4 @@ class Endpoint:
         self.application = application
         self.portnumber = portnumber
         self.protocol = protocol
-        self.addressconfig = config.AddressConfig() if addressConfig is None else addressConfig
+        self.addressConfig = config.AddressConfig() if addressConfig is None else addressConfig

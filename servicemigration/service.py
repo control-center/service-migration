@@ -29,11 +29,10 @@ def serialize(service):
 
 class Service():
 
-    def __init__(self, description="", startup="", version="", endpoints=[], runs=[], volumes=[], healthChecks=[]):
+    def __init__(self, description="", startup="", endpoints=[], runs=[], volumes=[], healthChecks=[]):
         self.__data = None
         self.description = description
         self.startup = startup
-        self.version = version
         self.endpoints = endpoints,
         self.runs = runs,
         self.volumes = volumes,
