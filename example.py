@@ -3,14 +3,17 @@ sm.require("1.0.0")
 
 ctx = sm.ServiceContext()
 
-def myFilter(item):
-    return item.getDescription() == "Zope server"
+zope = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+zope.description = "unlikelY"
+zope.startup = "unlikelY"
+zope.endpoints[0].name = "unlikelY"
+zope.endpoints[0].addressConfig.protocol = "unlikelY"
+zope.runs[0].name = "unlikelY"
+zope.runs[0].command = "unlikelY"
+zope.volumes[0].owner = "unlikelY"
+zope.healthChecks[0].script = "unlikelY"
 
-for service in filter(myFilter, ctx.services):
-    service.setDescription("an_unlikely-description")
-    runs = service.getRuns()
-    runs["foo"] = "an_unlikely-run"
-    service.setRuns(runs)
+ctx.version = "unlikelY"
 
 ctx.commit()
 

@@ -9,13 +9,6 @@ OUTFILENAME = os.path.join(os.path.dirname(__file__), "out.json")
 
 class ServiceTest(unittest.TestCase):
 
-    def test_get_services(self):
-        """
-        Tests ServiceContext creation.
-        """
-        ctx = sm.ServiceContext(INFILENAME)
-        self.assertEqual(len(ctx.services), 33)
-
     def test_description_add(self):
         """
         Tests adding a description where one did not previously exist.
