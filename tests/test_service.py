@@ -86,6 +86,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
+        if not "bar" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
         for run in svc.runs:
             if run.name is "foo":
                 self.assertEqual(run.command, "bar")
@@ -106,6 +110,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
+        if not "bar" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
         for run in svc.runs:
             if run.name is "foo":
                 self.assertEqual(run.command, "bar")
@@ -141,6 +149,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
+        if not "bar" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
         for ep in svc.endpoints:
             if ep.name is "foo":
                 self.assertEqual(ep.purpose, "bar")
@@ -161,6 +173,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
+        if not "bar" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
         for ep in svc.endpoints:
             if ep.name is "foo":
                 self.assertEqual(ep.purpose, "bar")
@@ -196,6 +212,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
+        if not "bar" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
         for v in svc.volumes:
             if v.owner is "foo":
                 self.assertEqual(v.permission, "bar")
@@ -216,6 +236,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
+        if not "bar" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
         for v in svc.volumes:
             if v.owner is "foo":
                 self.assertEqual(ep.permission, "bar")
@@ -251,6 +275,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
+        if not "bar" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
         for hc in svc.healthChecks:
             if hc.name is "foo":
                 self.assertEqual(hc.script, "bar")
@@ -271,6 +299,10 @@ class ServiceTest(unittest.TestCase):
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
+        if not "bar" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
         for hc in svc.healthChecks:
             if hc.name is "foo":
                 self.assertEqual(ep.script, "bar")
