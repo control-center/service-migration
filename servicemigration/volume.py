@@ -9,6 +9,9 @@ default = {
 }
 
 def deserialize(data):
+    """
+    Deserializes a list of volumes.
+    """
     if data is None:
         return []
     volumes = []
@@ -23,6 +26,9 @@ def deserialize(data):
     return volumes
 
 def serialize(volumes):
+    """
+    Serializes a list of volumes.
+    """
     data = []
     for volume in volumes:
         v = volume._Volume__data
@@ -34,7 +40,9 @@ def serialize(volumes):
     return data
 
 class Volume:
-
+    """
+    Wraps a single service volume.
+    """
     def __init__(self, owner="", permission="", resourcePath="", containerPath=""):
         self.__data = copy.deepcopy(default)
         self.owner = owner

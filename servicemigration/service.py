@@ -6,6 +6,9 @@ import volume
 import healthcheck
 
 def deserialize(data):
+    """
+    Deserializes a single service.
+    """
     service = Service()
     service._Service__data = data
     service.description = data["Description"]
@@ -17,6 +20,9 @@ def deserialize(data):
     return service
 
 def serialize(service):
+    """
+    Serializes a single service.
+    """
     data = copy.deepcopy(service._Service__data)
     data["Description"] = service.description
     data["Startup"] = service.startup
@@ -28,7 +34,9 @@ def serialize(service):
 
 
 class Service():
-
+    """
+    Wraps a single service.
+    """
     def __init__(self, description="", startup="", endpoints=[], runs=[], volumes=[], healthChecks=[]):
         self.__data = None
         self.description = description

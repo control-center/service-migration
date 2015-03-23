@@ -7,6 +7,9 @@ default = {
 }
 
 def deserialize(data):
+    """
+    Deserializes a list of HealthChecks.
+    """
     healthchecks = []
     if data is None:
         return []
@@ -21,6 +24,9 @@ def deserialize(data):
     return healthchecks
 
 def serialize(healthchecks):
+    """
+    Serializes a list of healthchecks.
+    """
     data = {}
     for hc in healthchecks:
         data[hc.name] = hc._HealthCheck__data
@@ -31,6 +37,9 @@ def serialize(healthchecks):
 
 
 class HealthCheck:
+    """
+    Wraps a single service healthcheck.
+    """
 
     def __init__(self, name="", script="", interval=0, timeout=0):
         self.__data = copy.deepcopy(default)

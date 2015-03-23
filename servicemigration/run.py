@@ -1,5 +1,8 @@
 
 def deserialize(data):
+    """
+    Deserializes a list of Runs.
+    """
     if data is None:
         return []
     runs = []
@@ -8,6 +11,9 @@ def deserialize(data):
     return runs
 
 def serialize(runs):
+    """
+    Serializes a list of runs.
+    """
     data = {}
     for run in runs:
         data[run.name] = run.command
@@ -15,7 +21,9 @@ def serialize(runs):
 
 
 class Run:
-
+    """
+    Wraps a single service run.
+    """
     def __init__(self, name, command):
         self.name = name
         self.command = command

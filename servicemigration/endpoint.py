@@ -29,6 +29,9 @@ default = {
 }
 
 def deserialize(data):
+    """
+    Deserializes the list of endpoints.
+    """
     if data is None:
         return []
     endpoints = []
@@ -45,6 +48,9 @@ def deserialize(data):
     return endpoints
 
 def serialize(endpoints):
+    """
+    Serializes the list of endpoints.
+    """
     data = []
     for ep in endpoints:
         d = {}
@@ -60,7 +66,9 @@ def serialize(endpoints):
 
 
 class Endpoint:
-
+    """
+    Wraps a single service endpoint.
+    """
     def __init__(self, name="", purpose="", application="", portnumber=0, protocol="", addressConfig=None):
         self.__data = copy.deepcopy(default)
         self.name = name
