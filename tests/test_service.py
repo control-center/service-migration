@@ -9,36 +9,16 @@ OUTFILENAME = os.path.join(os.path.dirname(__file__), "out.json")
 
 class ServiceTest(unittest.TestCase):
 
-    def test_get_services(self):
-        """
-        Tests ServiceContext creation.
-        """
-        ctx = sm.ServiceContext(INFILENAME)
-        self.assertEqual(len(ctx.services), 33)
-
-    def test_description_add(self):
-        """
-        Tests adding a description where one did not previously exist.
-        """
-        ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        del svc._Service__data["Description"]
-        svc.setDescription("an_unlikely-description")
-        ctx.commit(OUTFILENAME)
-        ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == "an_unlikely-description", ctx.services)
-        self.assertEqual(len(svc), 1)
-
     def test_description_remove(self):
         """
         Tests completely removing a description.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        svc.setDescription(None)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.description = None
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == None, ctx.services)
+        svc = filter(lambda x: x.description == None, ctx.services)
         self.assertEqual(len(svc), 1)
 
     def test_description_change(self):
@@ -46,105 +26,286 @@ class ServiceTest(unittest.TestCase):
         Tests altering a description.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        svc.setDescription("an_unlikely-description")
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.description = "an_unlikely-description"
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == "an_unlikely-description", ctx.services)
+        svc = filter(lambda x: x.description == "an_unlikely-description", ctx.services)
         self.assertEqual(len(svc), 1)
 
-    def test_runs_local_change_only(self):
+    def test_startup_remove(self):
         """
-        Tests that altering a run object from getRuns() does not result
-        to changes in the private data of the service.
-        """
-        ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs1 = svc.getRuns()
-        self.assertEqual(len(runs1), 7)
-        runs1["foo"] = "an_unlikely-run"
-        self.assertEqual(len(runs1), 8)
-        runs2 = svc.getRuns()
-        self.assertEqual(len(runs2), 7)
-        if "foo" in runs2:
-            raise ValueError("Changes against the results of getters should not alter private service data.");
-
-    def test_runs_add_prev_none(self):
-        """
-        Tests adding a run where there were previously none.
+        Tests completely removing a startup.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        del svc._Service__data["Runs"]
-        runs = svc.getRuns()
-        self.assertEqual(len(runs), 0)
-        runs["foo"] = "an_unlikely-run"
-        svc.setRuns(runs)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.startup = None
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs = svc.getRuns()
-        self.assertEqual(runs["foo"], "an_unlikely-run")
-        self.assertEqual(len(runs), 1)
+        svc = filter(lambda x: x.startup == None, ctx.services)
+        self.assertEqual(len(svc), 1)
+
+    def test_startup_change(self):
+        """
+        Tests altering a startup.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.startup = "an_unlikely-startup"
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.startup == "an_unlikely-startup", ctx.services)
+        self.assertEqual(len(svc), 1)
 
     def test_runs_remove(self):
         """
         Tests removing specific runs.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs = svc.getRuns()
-        self.assertEqual(len(runs), 7)
-        del runs["apply-custom-patches"]
-        del runs["help"]
-        svc.setRuns(runs)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.runs), 7)
+        svc.runs = filter(lambda r: r.name != "apply-custom-patches", svc.runs)
+        svc.runs = filter(lambda r: r.name != "help", svc.runs)
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs = svc.getRuns()
-        self.assertEqual(len(runs), 5)
-        if "help" in runs:
-            raise ValueError("Error removing run.")
-        if "apply-custom-patches" in runs:
-            raise ValueError("Error removing run.")
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.runs), 5)
+        for run in svc.runs:
+            if run.name in ["help", "apply-custom-patches"]:
+                raise ValueError("Error removing run.")
 
     def test_runs_add(self):
         """
         Tests adding runs to an existing list.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs = svc.getRuns()
-        self.assertEqual(len(runs), 7)
-        runs["foo"] = "an_unlikely-run"
-        runs["bar"] = "an_unlikely-run"
-        runs["baz"] = "an_unlikely-run"
-        svc.setRuns(runs)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.runs), 7)
+        svc.runs.append(sm.Run("foo", "bar"))
+        svc.runs.append(sm.Run("bar", "baz"))
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs = svc.getRuns()
-        self.assertEqual(runs["foo"], "an_unlikely-run")
-        self.assertEqual(runs["bar"], "an_unlikely-run")
-        self.assertEqual(runs["baz"], "an_unlikely-run")
-        self.assertEqual(len(runs), 10)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
+        if not "bar" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
+        for run in svc.runs:
+            if run.name is "foo":
+                self.assertEqual(run.command, "bar")
+            if run.name is "bar":
+                self.assertEqual(run.command, "baz")
+        self.assertEqual(len(svc.runs), 9)
 
     def test_runs_replace(self):
         """
-        Tests completely replacing the runs map.
+        Tests completely replacing the runs list.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        runs = {
-            "foo": "bar",
-            "bar": "baz",
-            "baz": "foo"
-        }
-        svc.setRuns(runs)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.runs = [
+            sm.Run("foo", "bar"),            
+            sm.Run("bar", "baz"),            
+        ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        svc = filter(lambda x: x.getDescription() == "Zope server", ctx.services)[0]
-        self.assertEqual(runs["foo"], "bar")
-        self.assertEqual(runs["bar"], "baz")
-        self.assertEqual(runs["baz"], "foo")
-        self.assertEqual(len(runs), 3)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
+        if not "bar" in [run.name for run in svc.runs]:
+            raise ValueError("Failed to alter runs.")
+        for run in svc.runs:
+            if run.name is "foo":
+                self.assertEqual(run.command, "bar")
+            if run.name is "bar":
+                self.assertEqual(run.command, "baz")
+        self.assertEqual(len(svc.runs), 2)
+
+    def test_endpoints_remove(self):
+        """
+        Tests removing specific endpoints.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.endpoints), 9)
+        svc.endpoints = filter(lambda r: r.name not in ["zenhub", "mariadb"], svc.endpoints)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.endpoints), 7)
+        for ep in svc.endpoints:
+            if ep.name in ["zenhub", "mariadb"]:
+                raise ValueError("Error removing endpoint.")
+
+    def test_endpoints_add(self):
+        """
+        Tests adding endpoints to an existing list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.endpoints), 9)
+        svc.endpoints.append(sm.Endpoint("foo", "bar"))
+        svc.endpoints.append(sm.Endpoint("bar", "baz"))
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
+        if not "bar" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
+        for ep in svc.endpoints:
+            if ep.name is "foo":
+                self.assertEqual(ep.purpose, "bar")
+            if ep.name is "bar":
+                self.assertEqual(ep.purpose, "baz")
+        self.assertEqual(len(svc.endpoints), 11)
+
+    def test_endpoints_replace(self):
+        """
+        Tests completely replacing the endpoints list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.endpoints = [
+            sm.Endpoint("foo", "bar"),            
+            sm.Endpoint("bar", "baz"),            
+        ]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
+        if not "bar" in [ep.name for ep in svc.endpoints]:
+            raise ValueError("Failed to alter endpoints.")
+        for ep in svc.endpoints:
+            if ep.name is "foo":
+                self.assertEqual(ep.purpose, "bar")
+            if ep.name is "bar":
+                self.assertEqual(ep.purpose, "baz")
+        self.assertEqual(len(svc.endpoints), 2)
+
+    def test_volumes_remove(self):
+        """
+        Tests removing specific volumes.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.volumes), 8)
+        svc.volumes = filter(lambda r: r.resourcePath not in ["zenjobs", "zenoss-export"], svc.volumes)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.volumes), 6)
+        for v in svc.volumes:
+            if v.resourcePath in ["zenjobs", "zenoss-export"]:
+                raise ValueError("Error removing volume.")
+
+    def test_volumes_add(self):
+        """
+        Tests adding volumes to an existing list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.volumes), 8)
+        svc.volumes.append(sm.Volume("foo", "bar"))
+        svc.volumes.append(sm.Volume("bar", "baz"))
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
+        if not "bar" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
+        for v in svc.volumes:
+            if v.owner is "foo":
+                self.assertEqual(v.permission, "bar")
+            if v.owner is "bar":
+                self.assertEqual(v.permission, "baz")
+        self.assertEqual(len(svc.volumes), 10)
+
+    def test_volumes_replace(self):
+        """
+        Tests completely replacing the volumes list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.volumes = [
+            sm.Volume("foo", "bar"),            
+            sm.Volume("bar", "baz"),            
+        ]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
+        if not "bar" in [v.owner for v in svc.volumes]:
+            raise ValueError("Failed to alter volumes.")
+        for v in svc.volumes:
+            if v.owner is "foo":
+                self.assertEqual(ep.permission, "bar")
+            if v.owner is "bar":
+                self.assertEqual(ep.permission, "baz")
+        self.assertEqual(len(svc.volumes), 2)
+
+    def test_healthchecks_remove(self):
+        """
+        Tests removing specific healthchecks.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.healthChecks), 7)
+        svc.healthChecks = filter(lambda r: r.name not in ["answering", "running"], svc.healthChecks)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.healthChecks), 5)
+        for hc in svc.healthChecks:
+            if hc.name in ["answering", "running"]:
+                raise ValueError("Error removing healthcheck.")
+
+    def test_healthchecks_add(self):
+        """
+        Tests adding healthchecks to an existing list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.healthChecks), 7)
+        svc.healthChecks.append(sm.HealthCheck("foo", "bar"))
+        svc.healthChecks.append(sm.HealthCheck("bar", "baz"))
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
+        if not "bar" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
+        for hc in svc.healthChecks:
+            if hc.name is "foo":
+                self.assertEqual(hc.script, "bar")
+            if hc.name is "bar":
+                self.assertEqual(hc.script, "baz")
+        self.assertEqual(len(svc.healthChecks), 9)
+
+    def test_healthchecks_replace(self):
+        """
+        Tests completely replacing the healthchecks list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.healthChecks = [
+            sm.HealthCheck("foo", "bar"),            
+            sm.HealthCheck("bar", "baz"),            
+        ]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
+        if not "bar" in [hc.name for hc in svc.healthChecks]:
+            raise ValueError("Failed to alter healthchecks.")
+        for hc in svc.healthChecks:
+            if hc.name is "foo":
+                self.assertEqual(ep.script, "bar")
+            if hc.name is "bar":
+                self.assertEqual(ep.script, "baz")
+        self.assertEqual(len(svc.healthChecks), 2)

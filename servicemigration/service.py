@@ -1,68 +1,48 @@
-import sys
-import json
 import copy
 
-from version import versioned
+import endpoint
+import run
+import volume
+import healthcheck
+
+def deserialize(data):
+    """
+    Deserializes a single service.
+    """
+    service = Service()
+    service._Service__data = data
+    service.description = data["Description"]
+    service.startup = data["Startup"]
+    service.endpoints = endpoint.deserialize(data["Endpoints"])
+    service.runs = run.deserialize(data["Runs"])
+    service.volumes = volume.deserialize(data["Volumes"])
+    service.healthChecks = healthcheck.deserialize(data["HealthChecks"])
+    return service
+
+def serialize(service):
+    """
+    Serializes a single service.
+    """
+    data = copy.deepcopy(service._Service__data)
+    data["Description"] = service.description
+    data["Startup"] = service.startup
+    data["Endpoints"] = endpoint.serialize(service.endpoints)
+    data["Runs"] = run.serialize(service.runs)
+    data["Volumes"] = volume.serialize(service.volumes)
+    data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
+    return data
 
 
 class Service():
-
-    def __init__(self, data):
-        self.__data = data
-
-    def getDescription(self):
-        """
-        Returns the service description string.
-        """
-        return self.__data["Description"]
-
-    def setDescription(self, desc):
-        """
-        Set the service description string.
-        """
-        self.__data["Description"] = desc
-
-    def getRuns(self):
-        """
-        Returns a map of string:string defining the service runs.
-        """
-        return {} if "Runs" not in self.__data else copy.copy(self.__data["Runs"])
-
-    def setRuns(self, runs):
-        """
-        Sets the service runs value. Takes a map of string:string.
-        """
-        self.__data["Runs"] = runs
-
-
-class ServiceContext():
-
-    @versioned
-    def __init__(self, filename=None):
-        """
-        Initializes the ServiceContext for the given filename, or the file
-        defined by sys.argv[1] if filename is None.
-
-        Requires that servicemigration.require() has been called.
-        """
-        if filename is None:
-            filename = sys.argv[1]
-        self.services = []
-        for data in  json.loads(open(filename, 'r').read()):
-            self.services.append(Service(data))
-
-    def commit(self, filename=None):
-        """
-        Commits the service to the given filename. If filename is None,
-        writes to the file defined by sys.argv[2].
-        """
-        if filename is None:
-            filename = sys.argv[2]
-        serviceList = []
-        for service in self.services:
-            serviceList.append(service._Service__data)
-        f = open(filename, 'w')
-        f.write(json.dumps(serviceList, indent=4, sort_keys=True))
-        f.close()
-
+    """
+    Wraps a single service.
+    """
+    def __init__(self, description="", startup="", endpoints=[], runs=[], volumes=[], healthChecks=[]):
+        self.__data = None
+        self.description = description
+        self.startup = startup
+        self.endpoints = endpoints,
+        self.runs = runs,
+        self.volumes = volumes,
+        self.healthChecks = healthChecks
 
