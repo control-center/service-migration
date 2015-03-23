@@ -16,7 +16,7 @@ def deserialize(data):
         hc.name = k
         hc.script = v["Script"]
         hc.interval = v["Interval"]
-        hc.timeout = v=["Timeout"]
+        hc.timeout = v["Timeout"]
         healthchecks.append(hc)
     return healthchecks
 
