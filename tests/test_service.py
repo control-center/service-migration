@@ -9,6 +9,13 @@ OUTFILENAME = os.path.join(os.path.dirname(__file__), "out.json")
 
 class ServiceTest(unittest.TestCase):
 
+    def test_getPath(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        self.assertEqual(svc.getPath(), "Zenoss.core/localhost/localhost/collectorredis")
+        svc = filter(lambda x: x.name == "Zenoss.core", ctx.services)[0]
+        self.assertEqual(svc.getPath(), "Zenoss.core")
+
     def test_description_remove(self):
         """
         Tests completely removing a description.
