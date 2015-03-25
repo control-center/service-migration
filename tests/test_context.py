@@ -83,3 +83,20 @@ class ServiceTest(unittest.TestCase):
         bugfx = int(sm.version.API_VERSION.split('.')[2]) - 1
         sm.require("%d.%d.%d" % (major, minor, bugfx))
 
+    def test_findService(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = ctx.findService("Zenoss.core/redis")
+        self.assertEqual(svc.name, "redis")
+        svc = ctx.findService("Zenoss.core/not-a-service")
+        self.assertEqual(svc, None)
+
+    def test_findServices(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svcs = ctx.findServices(r".*/localhost/localhost/.*")
+        self.assertEqual(len(svcs), 13)
+        for svc in svcs:
+            self.assertEqual("/localhost/localhost" in svc.getPath(), True)
+        svcs = ctx.findServices(r"Zenoss\.core")
+        self.assertEqual(len(svcs), 33)
+        svcs = ctx.findServices(r".*redis$")
+        self.assertEqual(len(svcs), 2)
