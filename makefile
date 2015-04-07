@@ -37,4 +37,3 @@ wheel:
 	python setup.py bdist_wheel
 	mv dist/* .
 	rm -rf build/bdist.linux-x86_64 build/lib.linux-x86_64-2.7 servicemigration.egg-info dist
-	

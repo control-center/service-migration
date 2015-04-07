@@ -316,3 +316,19 @@ class ServiceTest(unittest.TestCase):
             if hc.name is "bar":
                 self.assertEqual(ep.script, "baz")
         self.assertEqual(len(svc.healthChecks), 2)
+
+    def test_instancelimits_change(self):
+        """
+        Tests changing the instance limits.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.instanceLimits.minimum = 123
+        svc.instanceLimits.maximum = 1234
+        svc.instanceLimits.default = 234
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(svc.instanceLimits.minimum, 123)
+        self.assertEqual(svc.instanceLimits.maximum, 1234)
+        self.assertEqual(svc.instanceLimits.default, 234)

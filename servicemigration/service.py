@@ -4,6 +4,7 @@ import endpoint
 import run
 import volume
 import healthcheck
+import instancelimits
 
 def deserialize(data):
     """
@@ -18,6 +19,7 @@ def deserialize(data):
     service.runs = run.deserialize(data["Runs"])
     service.volumes = volume.deserialize(data["Volumes"])
     service.healthChecks = healthcheck.deserialize(data["HealthChecks"])
+    service.instanceLimits = instancelimits.deserialize(data["InstanceLimits"])
     return service
 
 def serialize(service):
@@ -32,6 +34,7 @@ def serialize(service):
     data["Runs"] = run.serialize(service.runs)
     data["Volumes"] = volume.serialize(service.volumes)
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
+    data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
     return data
 
 
@@ -40,7 +43,9 @@ class Service():
     Wraps a single service.
     """
 
-    def __init__(self, name="", description="", startup="", endpoints=[], runs=[], volumes=[], healthChecks=[]):
+    def __init__(self, name="", description="", startup="",
+        endpoints=[], runs=[], volumes=[], healthChecks=[],
+        instanceLimits=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -55,6 +60,7 @@ class Service():
         self.runs = runs,
         self.volumes = volumes,
         self.healthChecks = healthChecks
+        self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
 
     def getPath(self):
         """
