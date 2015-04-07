@@ -1,82 +1,154 @@
 import servicemigration as sm
 sm.require("1.0.0")
 
+"""
+This example script should make the following changes:
+
+    - The version of every service is changed to 1234567890
+    - The service named "Zope" and having the description "Zope server" is altered:
+        - Name is changed to "service name"
+        - Description is changed to "service description"
+        - Startup is changed to "service startup"
+        - Endpoint "zenhub" is removed
+        - Endpoint "mariadb" is altered:
+            - Name is changed to "altered mariadb"
+            - Purpose is changed to "export"
+            - Application is changed to "application"
+            - Portnumber is changed to 1234
+            - Protocol is changed to "TCP"
+            - AddressConfig is altered:
+                - Port is changed to 5678
+                - Protocol is changed to "UDP"
+        - A new endpoint is added:
+            - Name: "endpoint name"
+            - Purpose: "import"
+            - Application: "application"
+            - Portnumber: 9012
+            - Protocol: "TCP"
+            - AddressConfig:
+                - Port: 3456
+                - Protocol: "UDP"
+        - Run "help" is removed
+        - Run "upgrade" is altered:
+            - Name is changed to "upgrade renamed"
+            - Command is changed to "upgrade command"
+        - A new Run is added:
+            - Name: "new run"
+            - Command: "new run command"
+        - Volume having the resource path "zenjobs" is removed
+        - Volume having the resource path ".ssh" is altered:
+            - Owner is changed to "ssh owner"
+            - Permission is changed to "0000"
+            - Resource path is changed to "ssh resource path"
+            - Container path is changed to "/new/volume/container/path"
+        - HealthCheck "answering" is removed
+        - HealthCheck "running" is altered:
+            - Name is changed to "running name"
+            - Script is changed to "running script"
+            - Interval is changed to 123
+            - Timeout is changed to 456
+        - A new HealthCheck is added:
+            - Name: "new healthcheck name"
+            - Script: "new healthcheck script"
+            - Interval: 789
+            - Timeout: 901
+        - InstanceLimits is altered:
+            - Min is changed to 2
+            - Max is changed to 2
+            - Default is changed to 2
+"""
+
 # Get the service context.
 ctx = sm.ServiceContext()
 
 # Get the first zope service we come across.
-zope = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+svc = filter(lambda x: x.name == "Zope" and x.description == "Zope server", ctx.services)[0]
+
+# Change the name.
+svc.name = "service name"
 
 # Change the description.
-zope.description = "unlikelY"
+svc.description = "service description"
 
-# Change the startup command.
-zope.startup = "unlikelY"
+# Change the startup
+svc.startup = "service startup"
 
-# Remove the zenhub and mariadb endpoints.
-zope.endpoints = filter(lambda ep: ep.name not in ["zenhub", "mariadb"], zope.endpoints)
+# Remove the zenhub endpoint.
+svc.endpoints = filter(lambda x: x.name != "zenhub", svc.endpoints)
 
-# Get the redis endpoint.
-redis = filter(lambda ep: ep.name == "redis", zope.endpoints)[0]
+# Alter the mariadb endpoint.
+maria = filter(lambda x: x.name == "mariadb", svc.endpoints)[0]
+maria.name = "altered mariadb"
+maria.purpose = "export"
+maria.application = "application"
+maria.portnumber = 1234
+maria.protocol = "TCP"
+maria.addressConfig = sm.AddressConfig(5678, "UDP")
 
-# Alter the name, protocol, and addressConfig port of the redis endpoint.
-redis.name = "unlikelY"
-redis.protocol = "unlikelY"
-redis.addressConfig.port = 1337
-
-# Add a new endpoint.
-zope.endpoints.append(sm.Endpoint(
-    name = "unlikelY-2",
-    purpose = "unlikelY",
-    application = "unlikelY",
-    portnumber = 1337,
-    protocol = "unlikelY",
-    addressConfig = sm.AddressConfig(1337, "unlikelY")
+# Add a new endpoint
+svc.endpoints.append(sm.Endpoint(
+    name = "endpoint name",
+    purpose = "import",
+    application = "application",
+    portnumber = 9012,
+    protocol = "TCP",
+    addressConfig = sm.AddressConfig(3456, "UDP")
 ))
 
-# Remove the help and upgrade runs.
-zope.runs = filter(lambda r: r.name not in ["help", "upgrade"], zope.runs)
+# Remove the "help" run.
+svc.runs = filter(lambda x: x.name != "help", svc.runs)
 
-# Get the zendmd run.
-zendmd = filter(lambda r: r.name == "zendmd", zope.runs)[0]
-
-# Alter the zendmd name and command.
-zendmd.name = "unlikelY"
-zendmd.command = "unlikelY"
+# Alter the "upgrade" run.
+upgrade = filter(lambda x: x.name == "upgrade", svc.runs)[0]
+upgrade.name = "upgrade renamed"
+upgrade.command = "upgrade command"
 
 # Add a new run.
-zope.runs.append(sm.Run("unlikelY-2", "unlikelY"))
+svc.runs.append(sm.Run("new run", "new run command"))
 
-# Remove the zenjobs volume.
-zope.volumes = filter(lambda v: v.resourcePath != "zenjobs", zope.volumes)
+# Remove the "zenjobs" volume.
+svc.volumes = filter(lambda x: x.resourcePath != "zenjobs", svc.volumes)
 
-# Get the .ssh volume.
-ssh = filter(lambda v: v.resourcePath == ".ssh", zope.volumes)[0]
+# Alter the ".ssh" volume.
+ssh = filter(lambda x: x.resourcePath == ".ssh", svc.volumes)[0]
+ssh.owner = "ssh owner"
+ssh.permission = "0000"
+ssh.resourcePath = "ssh resource path"
+ssh.containerPath = "ssh/container/path"
 
-# Alter the owner and permission of the ssh volume.
-ssh.owner = "unlikelY"
-ssh.permission = "unlikelY"
+# Create a new volume.
+svc.volumes.append(sm.Volume(
+    owner = "new volume owner",
+    permission = "1111",
+    resourcePath = "new volume resource path",
+    containerPath = "new/volume/container/path"
+))
 
-# Add a new volume.
-zope.volumes.append(sm.Volume("unlikelY","unlikelY","unlikelY","unlikelY"))
+# Remove the "answering" health check.
+svc.healthChecks = filter(lambda x: x.name != "answering", svc.healthChecks)
 
-# Remove the running and answering healthchecks.
-zope.healthChecks = filter(lambda hc: hc.name not in ["running", "answering"], zope.healthChecks)
+# Alter the "running" health check.
+running = filter(lambda x: x.name == "running", svc.healthChecks)[0]
+running.name = "running name"
+running.script = "running script"
+running.interval = 123
+running.timeout = 456
 
-# Get the rabbit_answering health check.
-rabbit = filter(lambda hc: hc.name == "rabbit_answering", zope.healthChecks)[0]
+# Add a new health check.
+svc.healthChecks.append(sm.HealthCheck(
+    name = "new healthcheck name",
+    script = "new healthcheck script",
+    interval = 789,
+    timeout = 901
+))
 
-# Alter the rabbit_answering health check.
-rabbit.name = "unlikelY"
-rabbit.interval = 9001
+# Alter the instance limits.
+svc.instanceLimits.minimum = 2
+svc.instanceLimits.maximum = 2
+svc.instanceLimits.default = 2
 
-# Add a new health check
-zope.healthChecks.append(sm.HealthCheck("unlikelY","unlikelY",10, 1000))
+# Alter the version of all services.
+ctx.version = "1234567890"
 
-# Set the version of all services.
-ctx.version = "unlikelY"
-
-# Commit the changes. Done!
+# Commit the changes.
 ctx.commit()
-
-
