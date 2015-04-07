@@ -27,7 +27,7 @@ def serialize(config):
 
 class AddressConfig:
     """
-    Wraps a single AddressCconfig.
+    Wraps a single AddressConfig.
     """
     def __init__(self, port=0, protocol=""):
         self.__data = copy.deepcopy(default)
