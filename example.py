@@ -4,58 +4,79 @@ sm.require("1.0.0")
 """
 This example script should make the following changes:
 
-    - The version of every service is changed to 1234567890
-    - The service named "Zope" and having the description "Zope server" is altered:
-        - Name is changed to "service name"
-        - Description is changed to "service description"
-        - Startup is changed to "service startup"
-        - Endpoint "zenhub" is removed
-        - Endpoint "mariadb" is altered:
-            - Name is changed to "altered mariadb"
-            - Purpose is changed to "export"
-            - Application is changed to "application"
-            - Portnumber is changed to 1234
-            - Protocol is changed to "TCP"
-            - AddressConfig is altered:
-                - Port is changed to 5678
-                - Protocol is changed to "UDP"
-        - A new endpoint is added:
-            - Name: "endpoint name"
-            - Purpose: "import"
-            - Application: "application"
-            - Portnumber: 9012
-            - Protocol: "TCP"
-            - AddressConfig:
-                - Port: 3456
-                - Protocol: "UDP"
-        - Run "help" is removed
-        - Run "upgrade" is altered:
-            - Name is changed to "upgrade renamed"
-            - Command is changed to "upgrade command"
-        - A new Run is added:
-            - Name: "new run"
-            - Command: "new run command"
-        - Volume having the resource path "zenjobs" is removed
-        - Volume having the resource path ".ssh" is altered:
-            - Owner is changed to "ssh owner"
-            - Permission is changed to "0000"
-            - Resource path is changed to "ssh resource path"
-            - Container path is changed to "/new/volume/container/path"
-        - HealthCheck "answering" is removed
-        - HealthCheck "running" is altered:
-            - Name is changed to "running name"
-            - Script is changed to "running script"
-            - Interval is changed to 123
-            - Timeout is changed to 456
-        - A new HealthCheck is added:
-            - Name: "new healthcheck name"
-            - Script: "new healthcheck script"
-            - Interval: 789
-            - Timeout: 901
-        - InstanceLimits is altered:
-            - Min is changed to 2
-            - Max is changed to 2
-            - Default is changed to 2
+        - The version of every service is changed to 1234567890
+
+        - The description of all the children of the service named/described 
+          "localhost"/"Localhost collector" are changed to "child description".    
+
+        - The description of the service named "Zenoss.core" is changed to "parent description".
+
+        - The service named "Zope" and having the description "Zope server" is altered:
+
+                - Name is changed to "service name"
+
+                - Description is changed to "service description"
+
+                - Startup is changed to "service startup"
+
+                - Endpoint "zenhub" is removed
+
+                - Endpoint "mariadb" is altered:
+                    - Name is changed to "altered mariadb"
+                    - Purpose is changed to "export"
+                    - Application is changed to "application"
+                    - Portnumber is changed to 1234
+                    - Protocol is changed to "TCP"
+                    - AddressConfig is altered:
+                        - Port is changed to 5678
+                        - Protocol is changed to "UDP"
+
+                - A new endpoint is added:
+                    - Name: "endpoint name"
+                    - Purpose: "import"
+                    - Application: "application"
+                    - Portnumber: 9012
+                    - Protocol: "TCP"
+                    - AddressConfig:
+                        - Port: 3456
+                        - Protocol: "UDP"
+
+                - Run "help" is removed
+
+                - Run "upgrade" is altered:
+                    - Name is changed to "upgrade renamed"
+                    - Command is changed to "upgrade command"
+
+                - A new Run is added:
+                    - Name: "new run"
+                    - Command: "new run command"
+
+                - Volume having the resource path "zenjobs" is removed
+
+                - Volume having the resource path ".ssh" is altered:
+                    - Owner is changed to "ssh owner"
+                    - Permission is changed to "0000"
+                    - Resource path is changed to "ssh resource path"
+                    - Container path is changed to "/new/volume/container/path"
+
+                - HealthCheck "answering" is removed
+
+                - HealthCheck "running" is altered:
+                    - Name is changed to "running name"
+                    - Script is changed to "running script"
+                    - Interval is changed to 123
+                    - Timeout is changed to 456
+
+                - A new HealthCheck is added:
+                    - Name: "new healthcheck name"
+                    - Script: "new healthcheck script"
+                    - Interval: 789
+                    - Timeout: 901
+
+                - InstanceLimits is altered:
+                    - Min is changed to 2
+                    - Max is changed to 2
+                    - Default is changed to 2
 """
 
 # Get the service context.
@@ -149,6 +170,19 @@ svc.instanceLimits.default = 2
 
 # Alter the version of all services.
 ctx.version = "1234567890"
+
+# Change the description of all the children of the service named/described
+# "localhost"/"Localhost collector" to "child description".
+parent = filter(lambda x: x.name == "localhost" and x.description == "Localhost collector", ctx.services)[0]
+for child in parent.children:
+    child.description = "child description"
+
+# Find the "collectorredis" service and follow the tree up to "Zenoss.core". Change the description
+# of "Zenoss.core" to "parent description".
+child = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+while child.parent:
+    child = child.parent
+child.description = "parent description"
 
 # Commit the changes.
 ctx.commit()
