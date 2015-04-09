@@ -12,7 +12,8 @@
 # limitations under the License.
 
 IMAGE_NAME      := zenoss/service-migration
-IMAGE_VERSION   := $(shell cat servicemigration/VERSION)
+IMAGE_TAG       := $(shell cat servicemigration/VERSION)
+IMAGE_VERSION   := $(shell python -c "print '.'.join('$(IMAGE_TAG)'.split('.')[0])")
 
 default: buildImage
 
@@ -22,7 +23,7 @@ clean:
 	rm -rf build/servicemigration
 
 buildImage: copySource
-	docker build -t $(IMAGE_NAME):$(IMAGE_VERSION) build
+	docker build -t $(IMAGE_NAME)_v$(IMAGE_VERSION):$(IMAGE_TAG) build
 
 copySource: test clean
 	cp -r servicemigration build/servicemigration
@@ -31,7 +32,7 @@ test:
 	python -m unittest discover
 
 pushImage:
-	docker push $(IMAGE_NAME):$(IMAGE_VERSION)
+	docker push $(IMAGE_NAME)_v$(IMAGE_VERSION):($IMAGE_TAG)
 
 wheel:
 	python setup.py bdist_wheel
