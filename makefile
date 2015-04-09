@@ -32,7 +32,7 @@ test:
 	python -m unittest discover
 
 pushImage:
-	docker push $(IMAGE_NAME)_v$(IMAGE_VERSION):($IMAGE_TAG)
+	docker push $(IMAGE_NAME)_v$(IMAGE_VERSION):$(IMAGE_TAG)
 
 wheel:
 	python setup.py bdist_wheel
