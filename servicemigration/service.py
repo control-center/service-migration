@@ -49,8 +49,6 @@ class Service():
         """
         Internal use only. Do not call to create a service.
         """
-        self.parent = None
-        self.children = []
         self.__path = None
         self.__data = None
         self.name = name
@@ -61,15 +59,3 @@ class Service():
         self.volumes = volumes,
         self.healthChecks = healthChecks
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
-
-    def getPath(self):
-        """
-        Returns the path through the service tree to this service.
-        """
-        if self.__path is not None:
-            return self.__path
-        if self.parent is None:
-            return self.name
-        self.__path = self.parent.getPath() + "/" + self.name
-        return self.__path
-
