@@ -95,8 +95,59 @@ class ServiceTest(unittest.TestCase):
         svcs = ctx.findServices(r".*/localhost/localhost/.*")
         self.assertEqual(len(svcs), 13)
         for svc in svcs:
-            self.assertEqual("/localhost/localhost" in svc.getPath(), True)
+            self.assertEqual("/localhost/localhost" in ctx.getServicePath(svc), True)
         svcs = ctx.findServices(r"Zenoss\.core")
         self.assertEqual(len(svcs), 33)
         svcs = ctx.findServices(r".*redis$")
         self.assertEqual(len(svcs), 2)
+
+    def test_getServicePath(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        self.assertEqual(ctx.getServicePath(svc), "Zenoss.core/localhost/localhost/collectorredis")
+        svc = filter(lambda x: x.name == "Zenoss.core", ctx.services)[0]
+        self.assertEqual(ctx.getServicePath(svc), "Zenoss.core")
+
+    def test_reparentService_tenant(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc0 = filter(lambda x: x.name == "Zenoss.core", ctx.services)[0]
+        svc1 = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        try:
+            ctx.reparentService(svc0, svc1)
+        except ValueError as e:
+            self.assertEqual(str(e), "Can't reparent tenant.")
+            return
+        raise ValueError("Should not be able to reparent the tenant.")
+
+    def test_reparentService_cycle(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc0 = filter(lambda x: x.name == "localhost", ctx.services)[0]
+        svc1 = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        try:
+            ctx.reparentService(svc0, svc1)
+        except ValueError as e:
+            self.assertEqual(str(e), "Cycle detected in service tree.")
+            return
+        raise ValueError("Failed to detect cycle in service tree.")
+
+    def test_reparentService(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc0 = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        svc1 = filter(lambda x: x.name == "redis", ctx.services)[0]
+        ctx.reparentService(svc0, svc1)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc0 = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        svc1 = filter(lambda x: x.name == "redis", ctx.services)[0]
+        self.assertEqual(ctx.getServiceParent(svc0), svc1)
+        self.assertTrue(svc0 in ctx.getServiceChildren(svc1))
+
+    def test_getServiceChildren(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "Zenoss.core", ctx.services)[0]
+        self.assertEqual(len(ctx.getServiceChildren(svc)), 14)
+
+    def test_getServiceParent(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "redis", ctx.services)[0]
+        self.assertEqual(ctx.getServiceParent(svc).name, "Zenoss.core")
