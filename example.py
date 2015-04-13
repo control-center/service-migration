@@ -11,6 +11,8 @@ This example script should make the following changes:
 
         - The description of the service named "Zenoss.core" is changed to "parent description".
 
+        - The service named "redis" is cloned, and the clone is named "clone name".
+
         - The service named "Zope" and having the description "Zope server" is altered:
 
                 - Name is changed to "service name"
@@ -74,7 +76,7 @@ This example script should make the following changes:
                     - Timeout: 901
 
                 - InstanceLimits is altered:
-                    - Min is changed to 2
+                    - Min is changed to 0
                     - Max is changed to 2
                     - Default is changed to 2
 """
@@ -164,7 +166,7 @@ svc.healthChecks.append(sm.HealthCheck(
 ))
 
 # Alter the instance limits.
-svc.instanceLimits.minimum = 2
+svc.instanceLimits.minimum = 0
 svc.instanceLimits.maximum = 2
 svc.instanceLimits.default = 2
 
@@ -174,15 +176,20 @@ ctx.version = "1234567890"
 # Change the description of all the children of the service named/described
 # "localhost"/"Localhost collector" to "child description".
 parent = filter(lambda x: x.name == "localhost" and x.description == "Localhost collector", ctx.services)[0]
-for child in parent.children:
+for child in ctx.getServiceChildren(parent):
     child.description = "child description"
 
 # Find the "collectorredis" service and follow the tree up to "Zenoss.core". Change the description
 # of "Zenoss.core" to "parent description".
 child = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
-while child.parent:
-    child = child.parent
+while ctx.getServiceParent(child):
+    child = ctx.getServiceParent(child)
 child.description = "parent description"
+
+# Make a clone of the redis service.
+redis = filter(lambda x: x.name == "redis", ctx.services)[0]
+newRedis = ctx.cloneService(redis)
+newRedis.name = "new redis"
 
 # Commit the changes.
 ctx.commit()

@@ -49,8 +49,8 @@ class Service():
         """
         Internal use only. Do not call to create a service.
         """
-        self.__path = None
         self.__data = None
+        self.__clone = False
         self.name = name
         self.description = description
         self.startup = startup
