@@ -1,6 +1,7 @@
 import re
 import sys
 import json
+import copy
 
 from version import versioned
 import service
@@ -18,8 +19,17 @@ class ServiceContext():
         if filename is None:
             filename = sys.argv[1]
         self.services = []
-        for data in  json.loads(open(filename, 'r').read()):
-            self.services.append(service.deserialize(data))
+        data = json.loads(open(filename, 'r').read())
+        if type(data) is dict:
+            # Handle the case wherein we're loading the test results.
+            for datum in data["modified"]:
+                self.services.append(service.deserialize(datum))
+            for datum in data["cloned"]:
+                self.services.append(service.deserialize(datum))
+        else:
+            # Handle the case wherein we're loading input from serviced.
+            for datum in data:
+                self.services.append(service.deserialize(datum))
         if len(self.services) == 0:
             self.version = ""
         else:
@@ -33,12 +43,20 @@ class ServiceContext():
         if filename is None:
             filename = sys.argv[2]
         serviceList = []
+        cloneList = []
         for svc in self.services:
-            serviceList.append(service.serialize(svc))
-        for svc in serviceList:
-            svc["Version"] = self.version
+            serial = service.serialize(svc)
+            serial["Version"] = self.version
+            if svc._Service__clone:
+                cloneList.append(serial)
+            else:
+                serviceList.append(serial)
+        data = {
+            "modified": serviceList,
+            "cloned": cloneList
+        }
         f = open(filename, 'w')
-        f.write(json.dumps(serviceList, indent=4, sort_keys=True))
+        f.write(json.dumps(data, indent=4, sort_keys=True))
         f.close()
 
     def getServiceParent(self, svc):
@@ -93,4 +111,14 @@ class ServiceContext():
         p = re.compile(pattern)
         return filter(lambda s: p.match(self.getServicePath(s)) != None, self.services)
 
+    def cloneService(self, svc):
+        """
+        Returns a clone of the provided service. The clone is added to the context service list.
+        """
+        if self.getServiceParent(svc) is None:
+            raise ValueError("Can't clone tenant.")
+        clone = copy.deepcopy(svc)
+        clone._Service__clone = True
+        self.services.append(clone)
+        return clone
 

@@ -151,3 +151,13 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.name == "redis", ctx.services)[0]
         self.assertEqual(ctx.getServiceParent(svc).name, "Zenoss.core")
+
+    def test_cloneService(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        redis = filter(lambda x: x.name == "redis", ctx.services)[0]
+        clone = ctx.cloneService(redis)
+        clone.name = "clone name"
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        clone = filter(lambda x: x.name == "clone name", ctx.services)[0]
+        self.assertEqual(clone.description, redis.description)
