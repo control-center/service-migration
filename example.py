@@ -17,6 +17,8 @@ This example script should make the following changes:
 
                 - The exported endpoint Application property is changed to "endpoint_application"
 
+                - The DesiredState is set to RUN (1)
+
         - The service named "Zope" and having the description "Zope server" is altered:
 
                 - Name is changed to "service name"
@@ -201,8 +203,8 @@ newRedis.name = "clone name"
 export = filter(lambda e: e.purpose == "export", newRedis.endpoints)[0]
 export.application = "endpoint_application"
 
-# Set the desired state to 1 (run)
-newRedis.desiredState = 1
+# Set the desired state to RUN.
+newRedis.desiredState = sm.RUN
 
 # Commit the changes.
 ctx.commit()

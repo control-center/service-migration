@@ -6,6 +6,11 @@ import volume
 import healthcheck
 import instancelimits
 
+RESTART = -1
+STOP = 0
+RUN = 1
+PAUSE = 2
+
 def deserialize(data):
     """
     Deserializes a single service.
@@ -46,7 +51,7 @@ class Service():
     """
 
     def __init__(self, name="", description="", startup="",
-        desiredState=0, endpoints=[], runs=[], volumes=[], 
+        desiredState=STOP, endpoints=[], runs=[], volumes=[], 
         healthChecks=[], instanceLimits=None):
         """
         Internal use only. Do not call to create a service.

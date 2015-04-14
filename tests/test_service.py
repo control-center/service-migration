@@ -332,8 +332,8 @@ class ServiceTest(unittest.TestCase):
         """
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.name == "redis", ctx.services)[0]
-        svc.desiredState = 1234
+        svc.desiredState = sm.RESTART
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "redis", ctx.services)[0]
-        self.assertEqual(svc.desiredState, 1234)
+        self.assertEqual(svc.desiredState, sm.RESTART)
