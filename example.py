@@ -11,7 +11,13 @@ This example script should make the following changes:
 
         - The description of the service named "Zenoss.core" is changed to "parent description".
 
-        - The service named "redis" is cloned, and the clone is named "clone name".
+        - The service named "redis" is cloned and altered:
+
+                - Name is changed to "clone name"
+
+                - The exported endpoint Application property is changed to "endpoint_application"
+
+                - The DesiredState is set to RUN (1)
 
         - The service named "Zope" and having the description "Zope server" is altered:
 
@@ -189,7 +195,16 @@ child.description = "parent description"
 # Make a clone of the redis service.
 redis = filter(lambda x: x.name == "redis", ctx.services)[0]
 newRedis = ctx.cloneService(redis)
-newRedis.name = "new redis"
+
+# Rename it to "clone name"
+newRedis.name = "clone name"
+
+# Rename the exported endpoint application to "endpoint_application"
+export = filter(lambda e: e.purpose == "export", newRedis.endpoints)[0]
+export.application = "endpoint_application"
+
+# Set the desired state to RUN.
+newRedis.desiredState = sm.RUN
 
 # Commit the changes.
 ctx.commit()

@@ -325,3 +325,15 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(svc.instanceLimits.minimum, 123)
         self.assertEqual(svc.instanceLimits.maximum, 1234)
         self.assertEqual(svc.instanceLimits.default, 234)
+
+    def test_desiredState(self):
+        """
+        Tests changing the desired state.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "redis", ctx.services)[0]
+        svc.desiredState = sm.RESTART
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "redis", ctx.services)[0]
+        self.assertEqual(svc.desiredState, sm.RESTART)
