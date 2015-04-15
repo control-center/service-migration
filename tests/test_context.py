@@ -161,3 +161,16 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(OUTFILENAME)
         clone = filter(lambda x: x.name == "clone name", ctx.services)[0]
         self.assertEqual(clone.description, redis.description)
+
+    def test_reparentToClone(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        redis = filter(lambda x: x.name == "redis", ctx.services)[0]
+        clone = ctx.cloneService(redis)
+        collectorredis = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        try:
+            ctx.reparentService(collectorredis, clone)
+        except ValueError as e:
+            self.assertEqual(str(e), "Can't reparent to a clone.")
+            return
+        raise ValueError("Failed to detect clone parenting.")
+

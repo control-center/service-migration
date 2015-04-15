@@ -78,19 +78,23 @@ class ServiceContext():
             return svc.name
         return self.getServicePath(parent) + "/" + svc.name
 
-    def cycleCheckService(self, svc, history=[]):
+    def cycleCheckService(self, svc, history=None):
+        if history is None:
+            history = []
         if svc._Service__data["ID"] in history:
             raise ValueError("Cycle detected in service tree.")
         history.append(svc._Service__data["ID"])
         parent = self.getServiceParent(svc)
         if parent is None:
-            return False
-        return self.cycleCheckService(parent, history)
+            return
+        self.cycleCheckService(parent, history)
 
     def reparentService(self, svc, newParent):
         oldParent = self.getServiceParent(svc)
         if oldParent is None:
             raise ValueError("Can't reparent tenant.")
+        if newParent._Service__clone is True:
+            raise ValueError("Can't reparent to a clone.")
         svc._Service__data["ParentServiceID"] = newParent._Service__data["ID"]
         # Check for cycles. If any are found, an error will be thrown.
         self.cycleCheckService(svc)
