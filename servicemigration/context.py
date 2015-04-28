@@ -91,7 +91,7 @@ class ServiceContext():
             elif ZenUtils:
                 cpClient.postServicesForMigration(data)
             else:
-                raise ValueError("Can't find migration input data.")
+                raise ValueError("Can't find migration output location.")
 
     def getServiceParent(self, svc):
         # This could be sped up by creating a map of ID:service, but let's not optimize prematurely.
