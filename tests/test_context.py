@@ -200,3 +200,15 @@ class ServiceTest(unittest.TestCase):
             self.assertEqual(str(e), "Can't find migration output location.")
         else:
             raise ValueError("Failed to fail context commit.")
+    def test_reparentToClone(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        redis = filter(lambda x: x.name == "redis", ctx.services)[0]
+        clone = ctx.cloneService(redis)
+        collectorredis = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        try:
+            ctx.reparentService(collectorredis, clone)
+        except ValueError as e:
+            self.assertEqual(str(e), "Can't reparent to a clone.")
+            return
+        raise ValueError("Failed to detect clone parenting.")
+
