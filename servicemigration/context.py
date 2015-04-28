@@ -1,7 +1,15 @@
+import os
 import re
 import sys
 import json
 import copy
+
+try:
+    from Products.ZenUtils.controlplane.application import getConnectionSettings
+    from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+    ZenUtils = True
+except:
+    ZenUtils = False
 
 from version import versioned
 import service
@@ -11,20 +19,32 @@ class ServiceContext():
     @versioned
     def __init__(self, filename=None):
         """
-        Initializes the ServiceContext for the given filename, or the file
-        defined by sys.argv[1] if filename is None.
+        Initializes the ServiceContext. Input precedence is filename,
+        MIGRATE_INPUTFILE, servicemigration endpoint.
 
         Requires that servicemigration.require() has been called.
         """
-        if filename is None:
-            filename = sys.argv[1]
+        cpClient = None
+        if ZenUtils:
+            cpClient = ControlPlaneClient(**getConnectionSettings())
+        data = None
+        if filename is not None:
+            data = json.loads(open(filename, 'r').read())
+        else:
+            infile = os.environ["MIGRATE_INPUTFILE"] if "MIGRATE_INPUTFILE" in os.environ else None
+            if infile is not None:
+                data = json.loads(open(infile, 'r').read())
+            elif ZenUtils and "CONTROLPLANE_TENANT_ID" in os.environ:
+                data = cpClient.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
+            else:
+                raise ValueError("Can't find migration input data.")
+
         self.services = []
-        data = json.loads(open(filename, 'r').read())
         if type(data) is dict:
             # Handle the case wherein we're loading the test results.
-            for datum in data["modified"]:
+            for datum in data["Modified"]:
                 self.services.append(service.deserialize(datum))
-            for datum in data["cloned"]:
+            for datum in data["Cloned"]:
                 self.services.append(service.deserialize(datum))
         else:
             # Handle the case wherein we're loading input from serviced.
@@ -37,11 +57,9 @@ class ServiceContext():
 
     def commit(self, filename=None):
         """
-        Commits the service to the given filename. If filename is None,
-        writes to the file defined by sys.argv[2].
+        Commits the service to the given filename. Output precedence
+        is filename, MIGRATE_OUTPUTFILE, servicemigration endpoint.
         """
-        if filename is None:
-            filename = sys.argv[2]
         serviceList = []
         cloneList = []
         for svc in self.services:
@@ -52,12 +70,28 @@ class ServiceContext():
             else:
                 serviceList.append(serial)
         data = {
-            "modified": serviceList,
-            "cloned": cloneList
+            "ServiceID": self.getTopService()._Service__data["ID"],
+            "Modified": serviceList,
+            "Cloned": cloneList
         }
-        f = open(filename, 'w')
-        f.write(json.dumps(data, indent=4, sort_keys=True))
-        f.close()
+        data = json.dumps(data, indent=4, sort_keys=True)
+        cpClient = None
+        if ZenUtils:
+            cpClient = ControlPlaneClient(**getConnectionSettings())
+        if filename is not None:
+            f = open(filename, 'w')
+            f.write(data)
+            f.close()
+        else:
+            outfile = os.environ["MIGRATE_OUTPUTFILE"] if "MIGRATE_OUTPUTFILE" in os.environ else None
+            if outfile is not None:
+                f = open(outfile, 'w')
+                f.write(data)
+                f.close()
+            elif ZenUtils:
+                cpClient.postServicesForMigration(data)
+            else:
+                raise ValueError("Can't find migration input data.")
 
     def getServiceParent(self, svc):
         # This could be sped up by creating a map of ID:service, but let's not optimize prematurely.
@@ -78,22 +112,38 @@ class ServiceContext():
             return svc.name
         return self.getServicePath(parent) + "/" + svc.name
 
-    def cycleCheckService(self, svc, history=[]):
+    def cycleCheckService(self, svc, history=None):
+        if history is None:
+            history = []
         if svc._Service__data["ID"] in history:
             raise ValueError("Cycle detected in service tree.")
         history.append(svc._Service__data["ID"])
         parent = self.getServiceParent(svc)
         if parent is None:
-            return False
-        return self.cycleCheckService(parent, history)
+            return
+        self.cycleCheckService(parent, history)
 
     def reparentService(self, svc, newParent):
         oldParent = self.getServiceParent(svc)
         if oldParent is None:
             raise ValueError("Can't reparent tenant.")
+        if newParent._Service__clone is True:
+            raise ValueError("Can't reparent to a clone.")
         svc._Service__data["ParentServiceID"] = newParent._Service__data["ID"]
         # Check for cycles. If any are found, an error will be thrown.
         self.cycleCheckService(svc)
+
+    def getTopService(self, svc=None):
+        """
+        Returns the service with no parents. There should be only one, and it
+        should be the topmost in the portion of the service tree we have.
+        """
+        if svc is None:
+            svc = self.services[0]
+        parent = self.getServiceParent(svc)
+        if parent is None:
+            return svc
+        return self.getTopService(parent)
 
     def findService(self, path):
         """
