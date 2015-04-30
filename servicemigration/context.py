@@ -19,25 +19,33 @@ class ServiceContext():
     @versioned
     def __init__(self, filename=None):
         """
-        Initializes the ServiceContext. Input precedence is filename,
-        MIGRATE_INPUTFILE, servicemigration endpoint.
+        Initializes the ServiceContext.
+
+        Input precedence is:
+            1. The filename argument passed to this function.
+            2. The MIGRATE_INPUTFILE, which is an environment variable
+               indicating the path to a json-formatted file containing
+               the services to load.
+            3. Acquisition of the services from serviced via the ZenUtils
+               library.
+
+        If 1 is not available, 2 will be used. If 1 & 2 are not available,
+        3 will be used. If none are available, an error will be thrown.
 
         Requires that servicemigration.require() has been called.
         """
-        cpClient = None
-        if ZenUtils:
-            cpClient = ControlPlaneClient(**getConnectionSettings())
-        data = None
+        infile = None
         if filename is not None:
-            data = json.loads(open(filename, 'r').read())
+            infile = filename
         else:
             infile = os.environ["MIGRATE_INPUTFILE"] if "MIGRATE_INPUTFILE" in os.environ else None
-            if infile is not None:
-                data = json.loads(open(infile, 'r').read())
-            elif ZenUtils and "CONTROLPLANE_TENANT_ID" in os.environ:
-                data = cpClient.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
-            else:
-                raise ValueError("Can't find migration input data.")
+        if infile is not None:
+            data = json.loads(open(infile, 'r').read())
+        elif ZenUtils:
+            cpClient = ControlPlaneClient(**getConnectionSettings())
+            data = cpClient.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
+        else:
+            raise ValueError("Can't find migration input data.")
 
         self.services = []
         if type(data) is dict:
@@ -57,8 +65,18 @@ class ServiceContext():
 
     def commit(self, filename=None):
         """
-        Commits the service to the given filename. Output precedence
-        is filename, MIGRATE_OUTPUTFILE, servicemigration endpoint.
+        Commits the service to the given filename. 
+
+        Output precedence is:
+            1. The filename argument passed to this function.
+            2. The MIGRATE_OUTPUTFILE, which is an environment variable
+               indicating the path to which to write a json-formatted file
+               containing the services to commit.
+            3. Posting of the services to serviced via the ZenUtils
+               library.
+
+        If 1 is not available, 2 will be used. If 1 & 2 are not available,
+        3 will be used. If none are available, an error will be thrown.
         """
         serviceList = []
         cloneList = []
@@ -69,29 +87,28 @@ class ServiceContext():
                 cloneList.append(serial)
             else:
                 serviceList.append(serial)
+        serviceId = self.getTopService()._Service__data["ID"]
         data = {
-            "ServiceID": self.getTopService()._Service__data["ID"],
+            "ServiceID": serviceId,
             "Modified": serviceList,
             "Cloned": cloneList
         }
         data = json.dumps(data, indent=4, sort_keys=True)
-        cpClient = None
-        if ZenUtils:
-            cpClient = ControlPlaneClient(**getConnectionSettings())
+
+        outfile = None
         if filename is not None:
+            outfile = filename
+        else:
+            outfile = os.environ["MIGRATE_OUTPUTFILE"] if "MIGRATE_OUTPUTFILE" in os.environ else None
+        if outfile is not None:
             f = open(filename, 'w')
             f.write(data)
             f.close()
+        elif ZenUtils:
+            cpClient = ControlPlaneClient(**getConnectionSettings())
+            cpClient.postServicesForMigration(data, serviceId)
         else:
-            outfile = os.environ["MIGRATE_OUTPUTFILE"] if "MIGRATE_OUTPUTFILE" in os.environ else None
-            if outfile is not None:
-                f = open(outfile, 'w')
-                f.write(data)
-                f.close()
-            elif ZenUtils:
-                cpClient.postServicesForMigration(data)
-            else:
-                raise ValueError("Can't find migration output location.")
+            raise ValueError("Can't find migration input data.")
 
     def getServiceParent(self, svc):
         # This could be sped up by creating a map of ID:service, but let's not optimize prematurely.
