@@ -37,9 +37,10 @@ class ServiceTest(unittest.TestCase):
         bugfx = int(sm.version.API_VERSION.split('.')[2])
         try:
             sm.require("%d.%d.%d" % (major, minor, bugfx))
-        except ValueError:
-            return
-        raise ValueError("SDK Versioning logic failed.")
+        except ValueError as e:
+            pass
+        else:
+            raise ValueError("SDK Versioning logic failed.")
 
     def test_sdk_versioning_major_small(self):
         major = int(sm.version.API_VERSION.split('.')[0]) - 1
@@ -48,8 +49,9 @@ class ServiceTest(unittest.TestCase):
         try:
             sm.require("%d.%d.%d" % (major, minor, bugfx))
         except ValueError:
-            return
-        raise ValueError("SDK Versioning logic failed.")
+            pass
+        else:
+            raise ValueError("SDK Versioning logic failed.")
 
     def test_sdk_versioning_minor_big(self):
         major = int(sm.version.API_VERSION.split('.')[0])
@@ -58,8 +60,9 @@ class ServiceTest(unittest.TestCase):
         try:
             sm.require("%d.%d.%d" % (major, minor, bugfx))
         except ValueError:
-            return
-        raise ValueError("SDK Versioning logic failed.")
+            pass
+        else:
+            raise ValueError("SDK Versioning logic failed.")
 
     def test_sdk_versioning_minor_small(self):
         major = int(sm.version.API_VERSION.split('.')[0])
@@ -74,8 +77,9 @@ class ServiceTest(unittest.TestCase):
         try:
             sm.require("%d.%d.%d" % (major, minor, bugfx))
         except ValueError:
-            return
-        raise ValueError("SDK Versioning logic failed.")
+            pass
+        else:
+            raise ValueError("SDK Versioning logic failed.")
 
     def test_sdk_versioning_bugfix_small(self):
         major = int(sm.version.API_VERSION.split('.')[0])
@@ -116,8 +120,8 @@ class ServiceTest(unittest.TestCase):
             ctx.reparentService(svc0, svc1)
         except ValueError as e:
             self.assertEqual(str(e), "Can't reparent tenant.")
-            return
-        raise ValueError("Should not be able to reparent the tenant.")
+        else:
+            raise ValueError("Should not be able to reparent the tenant.")
 
     def test_reparentService_cycle(self):
         ctx = sm.ServiceContext(INFILENAME)
@@ -127,8 +131,8 @@ class ServiceTest(unittest.TestCase):
             ctx.reparentService(svc0, svc1)
         except ValueError as e:
             self.assertEqual(str(e), "Cycle detected in service tree.")
-            return
-        raise ValueError("Failed to detect cycle in service tree.")
+        else:
+            raise ValueError("Failed to detect cycle in service tree.")
 
     def test_reparentService(self):
         ctx = sm.ServiceContext(INFILENAME)
@@ -162,6 +166,40 @@ class ServiceTest(unittest.TestCase):
         clone = filter(lambda x: x.name == "clone name", ctx.services)[0]
         self.assertEqual(clone.description, redis.description)
 
+    def test_get_commit_services_env_var(self):
+        """
+        Tests ServiceContext creation and commit when using the environment variables.
+        """
+        os.environ["MIGRATE_INPUTFILE"] = INFILENAME
+        os.environ["MIGRATE_OUTPUTFILE"] = OUTFILENAME
+        ctx = sm.ServiceContext()
+        self.assertEqual(len(ctx.services), 33)
+        ctx.services.pop()
+        self.assertEqual(len(ctx.services), 32)
+        ctx.commit()
+        os.environ["MIGRATE_INPUTFILE"] = OUTFILENAME
+        ctx = sm.ServiceContext()
+        self.assertEqual(len(ctx.services), 32)
+
+    def test_get_commit_services_fail(self):
+        """
+        Make sure we fail when there's no way to get the data.
+        """
+        del os.environ["MIGRATE_INPUTFILE"]
+        try:
+            ctx = sm.ServiceContext()
+        except ValueError as e:
+            self.assertEqual(str(e), "Can't find migration input data.")
+        else:
+            raise ValueError("Failed to fail context creation.")
+        ctx = sm.ServiceContext(INFILENAME)
+        del os.environ["MIGRATE_OUTPUTFILE"]
+        try:
+            ctx.commit()
+        except ValueError as e:
+            self.assertEqual(str(e), "Can't find migration output location.")
+        else:
+            raise ValueError("Failed to fail context commit.")
     def test_reparentToClone(self):
         ctx = sm.ServiceContext(INFILENAME)
         redis = filter(lambda x: x.name == "redis", ctx.services)[0]

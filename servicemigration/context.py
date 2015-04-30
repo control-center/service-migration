@@ -1,7 +1,15 @@
+import os
 import re
 import sys
 import json
 import copy
+
+try:
+    from Products.ZenUtils.controlplane.application import getConnectionSettings
+    from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+    ZenUtils = True
+except:
+    ZenUtils = False
 
 from version import versioned
 import service
@@ -11,20 +19,40 @@ class ServiceContext():
     @versioned
     def __init__(self, filename=None):
         """
-        Initializes the ServiceContext for the given filename, or the file
-        defined by sys.argv[1] if filename is None.
+        Initializes the ServiceContext.
+
+        Input precedence is:
+            1. The filename argument passed to this function.
+            2. The MIGRATE_INPUTFILE, which is an environment variable
+               indicating the path to a json-formatted file containing
+               the services to load.
+            3. Acquisition of the services from serviced via the ZenUtils
+               library.
+
+        If 1 is not available, 2 will be used. If 1 & 2 are not available,
+        3 will be used. If none are available, an error will be thrown.
 
         Requires that servicemigration.require() has been called.
         """
-        if filename is None:
-            filename = sys.argv[1]
+        infile = None
+        if filename is not None:
+            infile = filename
+        else:
+            infile = os.environ["MIGRATE_INPUTFILE"] if "MIGRATE_INPUTFILE" in os.environ else None
+        if infile is not None:
+            data = json.loads(open(infile, 'r').read())
+        elif ZenUtils:
+            cpClient = ControlPlaneClient(**getConnectionSettings())
+            data = cpClient.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
+        else:
+            raise ValueError("Can't find migration input data.")
+
         self.services = []
-        data = json.loads(open(filename, 'r').read())
         if type(data) is dict:
             # Handle the case wherein we're loading the test results.
-            for datum in data["modified"]:
+            for datum in data["Modified"]:
                 self.services.append(service.deserialize(datum))
-            for datum in data["cloned"]:
+            for datum in data["Cloned"]:
                 self.services.append(service.deserialize(datum))
         else:
             # Handle the case wherein we're loading input from serviced.
@@ -37,11 +65,19 @@ class ServiceContext():
 
     def commit(self, filename=None):
         """
-        Commits the service to the given filename. If filename is None,
-        writes to the file defined by sys.argv[2].
+        Commits the service to the given filename. 
+
+        Output precedence is:
+            1. The filename argument passed to this function.
+            2. The MIGRATE_OUTPUTFILE, which is an environment variable
+               indicating the path to which to write a json-formatted file
+               containing the services to commit.
+            3. Posting of the services to serviced via the ZenUtils
+               library.
+
+        If 1 is not available, 2 will be used. If 1 & 2 are not available,
+        3 will be used. If none are available, an error will be thrown.
         """
-        if filename is None:
-            filename = sys.argv[2]
         serviceList = []
         cloneList = []
         for svc in self.services:
@@ -51,13 +87,28 @@ class ServiceContext():
                 cloneList.append(serial)
             else:
                 serviceList.append(serial)
+        serviceId = self.getTopService()._Service__data["ID"]
         data = {
-            "modified": serviceList,
-            "cloned": cloneList
+            "ServiceID": serviceId,
+            "Modified": serviceList,
+            "Cloned": cloneList
         }
-        f = open(filename, 'w')
-        f.write(json.dumps(data, indent=4, sort_keys=True))
-        f.close()
+        data = json.dumps(data, indent=4, sort_keys=True)
+
+        outfile = None
+        if filename is not None:
+            outfile = filename
+        else:
+            outfile = os.environ["MIGRATE_OUTPUTFILE"] if "MIGRATE_OUTPUTFILE" in os.environ else None
+        if outfile is not None:
+            f = open(filename, 'w')
+            f.write(data)
+            f.close()
+        elif ZenUtils:
+            cpClient = ControlPlaneClient(**getConnectionSettings())
+            cpClient.postServicesForMigration(data, serviceId)
+        else:
+            raise ValueError("Can't find migration input data.")
 
     def getServiceParent(self, svc):
         # This could be sped up by creating a map of ID:service, but let's not optimize prematurely.
@@ -98,6 +149,18 @@ class ServiceContext():
         svc._Service__data["ParentServiceID"] = newParent._Service__data["ID"]
         # Check for cycles. If any are found, an error will be thrown.
         self.cycleCheckService(svc)
+
+    def getTopService(self, svc=None):
+        """
+        Returns the service with no parents. There should be only one, and it
+        should be the topmost in the portion of the service tree we have.
+        """
+        if svc is None:
+            svc = self.services[0]
+        parent = self.getServiceParent(svc)
+        if parent is None:
+            return svc
+        return self.getTopService(parent)
 
     def findService(self, path):
         """
