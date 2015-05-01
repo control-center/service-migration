@@ -101,14 +101,14 @@ class ServiceContext():
         else:
             outfile = os.environ["MIGRATE_OUTPUTFILE"] if "MIGRATE_OUTPUTFILE" in os.environ else None
         if outfile is not None:
-            f = open(filename, 'w')
+            f = open(outfile, 'w')
             f.write(data)
             f.close()
         elif ZenUtils:
             cpClient = ControlPlaneClient(**getConnectionSettings())
             cpClient.postServicesForMigration(data, serviceId)
         else:
-            raise ValueError("Can't find migration input data.")
+            raise ValueError("Can't find migration output location.")
 
     def getServiceParent(self, svc):
         # This could be sped up by creating a map of ID:service, but let's not optimize prematurely.
