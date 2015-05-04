@@ -12,5 +12,8 @@ setup (
     description = "Zenoss Control Center Service Migration SDK",
     long_description = long_description,
     url = "https://github.com/control-center/service-migration",
-    packages = ["servicemigration"]
+    packages = ["servicemigration"],
+    package_data = {
+        "servicemigration": ["VERSION"]
+    }
 )
