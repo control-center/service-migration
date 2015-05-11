@@ -8,3 +8,4 @@ from volume import Volume
 from healthcheck import HealthCheck
 from addressconfig import AddressConfig
 from instancelimits import InstanceLimits
+from configfile import ConfigFile
