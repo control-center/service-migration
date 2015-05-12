@@ -3,7 +3,7 @@ import copy
 default = {
     "Filename": "/tmp/zenoss_config_file",
     "Owner": "zenoss:zenoss",
-    "Permissions": 660,
+    "Permissions": "660",
     "Content": "# Zenoss config file"
 }
 
@@ -44,7 +44,7 @@ class ConfigFile:
     Wraps a single service config file.
     """
 
-    def __init__(self, name="", filename="", owner="", permissions=660, content=""):
+    def __init__(self, name="", filename="", owner="", permissions="660", content=""):
         self.__data = copy.deepcopy(default)
         self.name = name
         self.filename = filename

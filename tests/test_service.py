@@ -361,8 +361,8 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         self.assertEqual(len(svc.configFiles), 2)
-        svc.configFiles.append(sm.ConfigFile("foo", "bar", "baz", 777, "foo bar baz"))
-        svc.configFiles.append(sm.ConfigFile("baz", "foo", "bar", 111, "baz foo bar"))
+        svc.configFiles.append(sm.ConfigFile("foo", "bar", "baz", "777", "foo bar baz"))
+        svc.configFiles.append(sm.ConfigFile("baz", "foo", "bar", "111", "baz foo bar"))
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
@@ -374,7 +374,7 @@ class ServiceTest(unittest.TestCase):
             if cf.name == "foo":
                 self.assertEqual(cf.content, "foo bar baz")
             if cf.name == "baz":
-                self.assertEqual(cf.permissions, 111)
+                self.assertEqual(cf.permissions, "111")
         self.assertEqual(len(svc.configFiles), 4)
 
     def test_configfiles_replace(self):
@@ -384,8 +384,8 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         svc.configFiles = [
-            sm.ConfigFile("foo", "bar", "baz", 777, "foo bar baz"),
-            sm.ConfigFile("baz", "foo", "bar", 111, "baz foo bar")
+            sm.ConfigFile("foo", "bar", "baz", "777", "foo bar baz"),
+            sm.ConfigFile("baz", "foo", "bar", "111", "baz foo bar")
         ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
@@ -398,5 +398,5 @@ class ServiceTest(unittest.TestCase):
             if cf.name == "foo":
                 self.assertEqual(cf.content, "foo bar baz")
             if cf.name == "baz":
-                self.assertEqual(cf.permissions, 111)
+                self.assertEqual(cf.permissions, "111")
         self.assertEqual(len(svc.configFiles), 2)

@@ -84,17 +84,16 @@ This example script should make the following changes:
                 - ConfigFile "/opt/zenoss/etc/global.conf" is removed
 
                 - ConfigFile "/opt/zenoss/etc/zope.conf" is altered:
-                    - Name: "Zope config name"
                     - Filename: "zope_config_filename"
                     - Owner: "foo:bar"
-                    - Permissions: 777
+                    - Permissions: "777"
                     - Content: "Zope conf contents"
 
                 - A new ConfigFile is added:
                     - Name: "new configfile name"
                     - Filename: "new configfile filename"
                     - Owner: "new configfile owner"
-                    - Permissions: 111
+                    - Permissions: "111"
                     - Content: "new configfile content"
 
                 - InstanceLimits is altered:
@@ -192,10 +191,9 @@ svc.configFiles = filter(lambda x: x.name != "/opt/zenoss/etc/global.conf", svc.
 
 # Alter the "/opt/zenoss/etc/zope.conf" config file.
 zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", svc.configFiles)[0]
-zopeconf.name = "Zope config name"
 zopeconf.filename = "zope_config_filename"
 zopeconf.owner = "foo:bar"
-zopeconf.permissions = 777
+zopeconf.permissions = "777"
 zopeconf.content = "Zope conf contents"
 
 # Add a new config file.
@@ -203,7 +201,7 @@ svc.configFiles.append(sm.ConfigFile(
     name = "new configfile name",
     filename = "new configfile filename",
     owner = "new configfile owner",
-    permissions = 111,
+    permissions = "111",
     content = "new configfile content"
 ))
 

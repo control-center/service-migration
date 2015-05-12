@@ -27,7 +27,7 @@ def deserialize(data):
     service.volumes = volume.deserialize(data["Volumes"])
     service.healthChecks = healthcheck.deserialize(data["HealthChecks"])
     service.instanceLimits = instancelimits.deserialize(data["InstanceLimits"])
-    service.configFiles = configfile.deserialize(data["ConfigFiles"])
+    service.configFiles = configfile.deserialize(data["OriginalConfigs"])
     return service
 
 def serialize(service):
@@ -44,7 +44,7 @@ def serialize(service):
     data["Volumes"] = volume.serialize(service.volumes)
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
-    data["ConfigFiles"] = configfile.serialize(service.configFiles)
+    data["OriginalConfigs"] = configfile.serialize(service.configFiles)
     return data
 
 
