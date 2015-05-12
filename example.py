@@ -81,6 +81,21 @@ This example script should make the following changes:
                     - Interval: 789
                     - Timeout: 901
 
+                - ConfigFile "/opt/zenoss/etc/global.conf" is removed
+
+                - ConfigFile "/opt/zenoss/etc/zope.conf" is altered:
+                    - Filename: "zope_config_filename"
+                    - Owner: "foo:bar"
+                    - Permissions: "777"
+                    - Content: "Zope conf contents"
+
+                - A new ConfigFile is added:
+                    - Name: "new configfile name"
+                    - Filename: "new configfile filename"
+                    - Owner: "new configfile owner"
+                    - Permissions: "111"
+                    - Content: "new configfile content"
+
                 - InstanceLimits is altered:
                     - Min is changed to 0
                     - Max is changed to 2
@@ -169,6 +184,25 @@ svc.healthChecks.append(sm.HealthCheck(
     script = "new healthcheck script",
     interval = 789,
     timeout = 901
+))
+
+# Remove the "/opt/zenoss/etc/global.conf" config file.
+svc.configFiles = filter(lambda x: x.name != "/opt/zenoss/etc/global.conf", svc.configFiles)
+
+# Alter the "/opt/zenoss/etc/zope.conf" config file.
+zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", svc.configFiles)[0]
+zopeconf.filename = "zope_config_filename"
+zopeconf.owner = "foo:bar"
+zopeconf.permissions = "777"
+zopeconf.content = "Zope conf contents"
+
+# Add a new config file.
+svc.configFiles.append(sm.ConfigFile(
+    name = "new configfile name",
+    filename = "new configfile filename",
+    owner = "new configfile owner",
+    permissions = "111",
+    content = "new configfile content"
 ))
 
 # Alter the instance limits.

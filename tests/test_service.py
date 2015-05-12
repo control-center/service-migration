@@ -91,9 +91,9 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [run.name for run in svc.runs]:
             raise ValueError("Failed to alter runs.")
         for run in svc.runs:
-            if run.name is "foo":
+            if run.name == "foo":
                 self.assertEqual(run.command, "bar")
-            if run.name is "bar":
+            if run.name == "bar":
                 self.assertEqual(run.command, "baz")
         self.assertEqual(len(svc.runs), 9)
 
@@ -115,9 +115,9 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [run.name for run in svc.runs]:
             raise ValueError("Failed to alter runs.")
         for run in svc.runs:
-            if run.name is "foo":
+            if run.name == "foo":
                 self.assertEqual(run.command, "bar")
-            if run.name is "bar":
+            if run.name == "bar":
                 self.assertEqual(run.command, "baz")
         self.assertEqual(len(svc.runs), 2)
 
@@ -154,9 +154,9 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [ep.name for ep in svc.endpoints]:
             raise ValueError("Failed to alter endpoints.")
         for ep in svc.endpoints:
-            if ep.name is "foo":
+            if ep.name == "foo":
                 self.assertEqual(ep.purpose, "bar")
-            if ep.name is "bar":
+            if ep.name == "bar":
                 self.assertEqual(ep.purpose, "baz")
         self.assertEqual(len(svc.endpoints), 11)
 
@@ -178,9 +178,9 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [ep.name for ep in svc.endpoints]:
             raise ValueError("Failed to alter endpoints.")
         for ep in svc.endpoints:
-            if ep.name is "foo":
+            if ep.name == "foo":
                 self.assertEqual(ep.purpose, "bar")
-            if ep.name is "bar":
+            if ep.name == "bar":
                 self.assertEqual(ep.purpose, "baz")
         self.assertEqual(len(svc.endpoints), 2)
 
@@ -217,9 +217,9 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [v.owner for v in svc.volumes]:
             raise ValueError("Failed to alter volumes.")
         for v in svc.volumes:
-            if v.owner is "foo":
+            if v.owner == "foo":
                 self.assertEqual(v.permission, "bar")
-            if v.owner is "bar":
+            if v.owner == "bar":
                 self.assertEqual(v.permission, "baz")
         self.assertEqual(len(svc.volumes), 10)
 
@@ -241,10 +241,10 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [v.owner for v in svc.volumes]:
             raise ValueError("Failed to alter volumes.")
         for v in svc.volumes:
-            if v.owner is "foo":
-                self.assertEqual(ep.permission, "bar")
-            if v.owner is "bar":
-                self.assertEqual(ep.permission, "baz")
+            if v.owner == "foo":
+                self.assertEqual(v.permission, "bar")
+            if v.owner == "bar":
+                self.assertEqual(v.permission, "baz")
         self.assertEqual(len(svc.volumes), 2)
 
     def test_healthchecks_remove(self):
@@ -280,9 +280,9 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [hc.name for hc in svc.healthChecks]:
             raise ValueError("Failed to alter healthchecks.")
         for hc in svc.healthChecks:
-            if hc.name is "foo":
+            if hc.name == "foo":
                 self.assertEqual(hc.script, "bar")
-            if hc.name is "bar":
+            if hc.name == "bar":
                 self.assertEqual(hc.script, "baz")
         self.assertEqual(len(svc.healthChecks), 9)
 
@@ -304,10 +304,10 @@ class ServiceTest(unittest.TestCase):
         if not "bar" in [hc.name for hc in svc.healthChecks]:
             raise ValueError("Failed to alter healthchecks.")
         for hc in svc.healthChecks:
-            if hc.name is "foo":
-                self.assertEqual(ep.script, "bar")
-            if hc.name is "bar":
-                self.assertEqual(ep.script, "baz")
+            if hc.name == "foo":
+                self.assertEqual(hc.script, "bar")
+            if hc.name == "bar":
+                self.assertEqual(hc.script, "baz")
         self.assertEqual(len(svc.healthChecks), 2)
 
     def test_instancelimits_change(self):
@@ -337,3 +337,66 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "redis", ctx.services)[0]
         self.assertEqual(svc.desiredState, sm.RESTART)
+
+    def test_configfiles_remove(self):
+        """
+        Tests removing specific config files.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.configFiles), 2)
+        svc.configFiles = filter(lambda r: r.name not in ["/opt/zenoss/etc/global.conf"], svc.configFiles)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.configFiles), 1)
+        for cf in svc.configFiles:
+            if cf.name == "/opt/zenoss/etc/global.conf":
+                raise ValueError("Error removing config file.")
+
+    def test_configfiles_add(self):
+        """
+        Tests adding config files to an existing list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(len(svc.configFiles), 2)
+        svc.configFiles.append(sm.ConfigFile("foo", "bar", "baz", "777", "foo bar baz"))
+        svc.configFiles.append(sm.ConfigFile("baz", "foo", "bar", "111", "baz foo bar"))
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [hc.name for hc in svc.configFiles]:
+            raise ValueError("Failed to alter configFiles.")
+        if not "baz" in [hc.name for hc in svc.configFiles]:
+            raise ValueError("Failed to alter configFiles.")
+        for cf in svc.configFiles:
+            if cf.name == "foo":
+                self.assertEqual(cf.content, "foo bar baz")
+            if cf.name == "baz":
+                self.assertEqual(cf.permissions, "111")
+        self.assertEqual(len(svc.configFiles), 4)
+
+    def test_configfiles_replace(self):
+        """
+        Tests completely replacing the configfiles list.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.configFiles = [
+            sm.ConfigFile("foo", "bar", "baz", "777", "foo bar baz"),
+            sm.ConfigFile("baz", "foo", "bar", "111", "baz foo bar")
+        ]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        if not "foo" in [cf.name for cf in svc.configFiles]:
+            raise ValueError("Failed to alter config files.")
+        if not "baz" in [cf.name for cf in svc.configFiles]:
+            raise ValueError("Failed to alter config files.")
+        for cf in svc.configFiles:
+            if cf.name == "foo":
+                self.assertEqual(cf.content, "foo bar baz")
+            if cf.name == "baz":
+                self.assertEqual(cf.permissions, "111")
+        self.assertEqual(len(svc.configFiles), 2)
