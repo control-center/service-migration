@@ -28,6 +28,7 @@ def deserialize(data):
     service.healthChecks = healthcheck.deserialize(data["HealthChecks"])
     service.instanceLimits = instancelimits.deserialize(data["InstanceLimits"])
     service.configFiles = configfile.deserialize(data["OriginalConfigs"])
+    service.tags = data["Tags"][:] if data["Tags"] is not None else []
     return service
 
 def serialize(service):
@@ -45,6 +46,7 @@ def serialize(service):
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
     data["OriginalConfigs"] = configfile.serialize(service.configFiles)
+    data["Tags"] = service.tags[:]
     return data
 
 
@@ -55,7 +57,8 @@ class Service():
 
     def __init__(self, name="", description="", startup="",
         desiredState=STOP, endpoints=[], runs=[], volumes=[], 
-        healthChecks=[], instanceLimits=None, configFiles=[]):
+        healthChecks=[], instanceLimits=None, configFiles=[],
+        tags=[]):
         """
         Internal use only. Do not call to create a service.
         """
@@ -71,3 +74,4 @@ class Service():
         self.healthChecks = healthChecks
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
         self.configFiles = configFiles
+        self.tags = tags

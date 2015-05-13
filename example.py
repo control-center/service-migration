@@ -100,6 +100,8 @@ This example script should make the following changes:
                     - Min is changed to 0
                     - Max is changed to 2
                     - Default is changed to 2
+
+                - Tags is altered from ["daemon"] to ["tag"].
 """
 
 # Get the service context.
@@ -209,6 +211,12 @@ svc.configFiles.append(sm.ConfigFile(
 svc.instanceLimits.minimum = 0
 svc.instanceLimits.maximum = 2
 svc.instanceLimits.default = 2
+
+# Add the tag "tag".
+svc.tags.append("tag")
+
+# Remove the tag "daemon".
+svc.tags.remove("daemon")
 
 # Alter the version of all services.
 ctx.version = "1234567890"

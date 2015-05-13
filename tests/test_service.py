@@ -400,3 +400,38 @@ class ServiceTest(unittest.TestCase):
             if cf.name == "baz":
                 self.assertEqual(cf.permissions, "111")
         self.assertEqual(len(svc.configFiles), 2)
+
+    def test_tags_filter(self):
+        """
+        Tests filtering a service by tags.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svcs = filter(lambda s: "collector" in s.tags and "daemon" in s.tags, ctx.services)
+        self.assertEqual(len(svcs), 13)
+
+    def test_tags_alter(self):
+        """
+        Tests altering the tag list of a service.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda s: "collector" in s.tags and "daemon" in s.tags, ctx.services)[0]
+        svc.tags.remove("collector")
+        svc.tags.append("unlikely_tag")
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svcs = filter(lambda s: "unlikely_tag" in s.tags and "daemon" in s.tags, ctx.services)
+        self.assertEqual(len(svcs), 1)
+
+    def test_tags_replace(self):
+        """
+        Tests completely replacing the tag list of a service.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda s: "collector" in s.tags and "daemon" in s.tags, ctx.services)[0]
+        svc.tags = ["unlikely_tag_1", "unlikely_tag_2"]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svcs = filter(lambda s: "unlikely_tag_1" in s.tags and "unlikely_tag_2" in s.tags, ctx.services)
+        self.assertEqual(len(svcs), 1)
+
+
