@@ -12,9 +12,9 @@ def deserialize(data):
     """
     il = InstanceLimits()
     il.__InstanceLimits_data = data
-    il.minimum = data["Min"]
-    il.maximum = data["Max"]
-    il.default = data["Default"]
+    il.minimum = data.get("Min", 1)
+    il.maximum = data.get("Max", 0)
+    il.default = data.get("Default", 0)
     return il
 
 def serialize(il):

@@ -434,4 +434,19 @@ class ServiceTest(unittest.TestCase):
         svcs = filter(lambda s: "unlikely_tag_1" in s.tags and "unlikely_tag_2" in s.tags, ctx.services)
         self.assertEqual(len(svcs), 1)
 
+    def test_clone_service(self):
+        """
+        Tests cloning a service.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        self.assertEqual(len(ctx.services), 33)
+        redis = filter(lambda s: s.name == "redis", ctx.services)[0]
+        clone = redis.clone()
+        clone.name = "clone name"
+        ctx.services.append(clone)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        clone = filter(lambda s: s.name == "clone name", ctx.services)[0]
+        self.assertEqual(clone.description, redis.description)
+        self.assertEqual(len(ctx.services), 34)
 

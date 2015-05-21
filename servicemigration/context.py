@@ -48,20 +48,26 @@ class ServiceContext():
             raise ValueError("Can't find migration input data.")
 
         self.services = []
+        self.__deploy = []
         if type(data) is dict:
-            # Handle the case wherein we're loading the test results.
+            # Handle the case wherein we are reading from SDK output.
             for datum in data["Modified"]:
                 self.services.append(service.deserialize(datum))
-            for datum in data["Cloned"]:
+            for datum in data["Added"]:
                 self.services.append(service.deserialize(datum))
-        else:
-            # Handle the case wherein we're loading input from serviced.
+            for datum in data["Deploy"]:
+                self.__deploy.append(datum)
+        elif type(data) is list:
+            # Handle the case wherein we are reading from Serviced output.
             for datum in data:
                 self.services.append(service.deserialize(datum))
+        else:
+            raise ValueError("Couldn't read migration input data.")
         if len(self.services) == 0:
             self.version = ""
         else:
             self.version = self.services[0]._Service__data["Version"]
+
 
     def commit(self, filename=None):
         """
@@ -78,20 +84,21 @@ class ServiceContext():
         If 1 is not available, 2 will be used. If 1 & 2 are not available,
         3 will be used. If none are available, an error will be thrown.
         """
-        serviceList = []
-        cloneList = []
+        addedServices = []
+        modifiedServices = []
         for svc in self.services:
             serial = service.serialize(svc)
             serial["Version"] = self.version
-            if svc._Service__clone:
-                cloneList.append(serial)
+            if serial["ID"] == "new-service":
+                addedServices.append(serial)
             else:
-                serviceList.append(serial)
+                modifiedServices.append(serial)
         serviceId = self.getTopService()._Service__data["ID"]
         data = {
             "ServiceID": serviceId,
-            "Modified": serviceList,
-            "Cloned": cloneList
+            "Modified": modifiedServices,
+            "Added": addedServices,
+            "Deploy": self.__deploy
         }
         data = json.dumps(data, indent=4, sort_keys=True)
 
@@ -144,8 +151,8 @@ class ServiceContext():
         oldParent = self.getServiceParent(svc)
         if oldParent is None:
             raise ValueError("Can't reparent tenant.")
-        if newParent._Service__clone is True:
-            raise ValueError("Can't reparent to a clone.")
+        if newParent._Service__data["ID"] == "new-service":
+            raise ValueError("Can't reparent to a new service.")
         svc._Service__data["ParentServiceID"] = newParent._Service__data["ID"]
         # Check for cycles. If any are found, an error will be thrown.
         self.cycleCheckService(svc)
@@ -178,14 +185,24 @@ class ServiceContext():
         p = re.compile(pattern)
         return filter(lambda s: p.match(self.getServicePath(s)) != None, self.services)
 
-    def cloneService(self, svc):
+    def deployService(self, servicedef, parent):
         """
-        Returns a clone of the provided service. The clone is added to the context service list.
+        Add service definition for deployment.
         """
-        if self.getServiceParent(svc) is None:
-            raise ValueError("Can't clone tenant.")
-        clone = copy.deepcopy(svc)
-        clone._Service__clone = True
-        self.services.append(clone)
-        return clone
+        if parent._Service__data["ID"] == "new-service":
+            raise Exception("Can't deploy a service to a parent that is a new service.")
+        self.__deploy.append({
+            "Service": json.loads(servicedef),
+            "ParentID": parent._Service__data["ID"]
+        })
 
+    def __deployService(self, service, parentid):
+        """
+        Add a service definition for deployment using parent ID. This is private
+        because we don't want to expose service IDs, but need to use the parent
+        ID when deploying from ZenPack.py.
+        """
+        svcs = filter(lambda s: s._Service__data["ID"] == parentid, self.services)
+        if len(svcs) != 1:
+            raise Exception("Couldn't find the proper parent service.")
+        self.deployService(service, svcs[0])
