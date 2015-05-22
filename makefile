@@ -40,7 +40,7 @@ wheel:
 	rm -rf build/bdist.linux-x86_64 build/lib.linux-x86_64-2.7 servicemigration.egg-info dist
 
 example:
-	python example.py tests/v1.0.0.json out.json
+	MIGRATE_INPUTFILE=tests/v1.0.0.json MIGRATE_OUTPUTFILE=out.json python example.py
 
 run-example:
 	serviced service migrate Zenoss.core example.py

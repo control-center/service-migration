@@ -11,8 +11,8 @@ def deserialize(data):
     """
     config = AddressConfig()
     config._AddressConfig__data = data
-    config.port = data["Port"]
-    config.protocol = data["Protocol"]
+    config.port = data.get("Port", 0)
+    config.protocol = data.get("Protocol", "")
     return config
 
 def serialize(config):

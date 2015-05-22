@@ -7,7 +7,7 @@ sm.require(sm.version.API_VERSION)
 INFILENAME = os.path.join(os.path.dirname(__file__), "v1.0.0.json")
 OUTFILENAME = os.path.join(os.path.dirname(__file__), "out.json")
 
-class ServiceTest(unittest.TestCase):
+class ContextTest(unittest.TestCase):
 
     def test_get_commit_services(self):
         """
@@ -156,16 +156,6 @@ class ServiceTest(unittest.TestCase):
         svc = filter(lambda x: x.name == "redis", ctx.services)[0]
         self.assertEqual(ctx.getServiceParent(svc).name, "Zenoss.core")
 
-    def test_cloneService(self):
-        ctx = sm.ServiceContext(INFILENAME)
-        redis = filter(lambda x: x.name == "redis", ctx.services)[0]
-        clone = ctx.cloneService(redis)
-        clone.name = "clone name"
-        ctx.commit(OUTFILENAME)
-        ctx = sm.ServiceContext(OUTFILENAME)
-        clone = filter(lambda x: x.name == "clone name", ctx.services)[0]
-        self.assertEqual(clone.description, redis.description)
-
     def test_get_commit_services_env_var(self):
         """
         Tests ServiceContext creation and commit when using the environment variables.
@@ -200,15 +190,38 @@ class ServiceTest(unittest.TestCase):
             self.assertEqual(str(e), "Can't find migration output location.")
         else:
             raise ValueError("Failed to fail context commit.")
+
     def test_reparentToClone(self):
         ctx = sm.ServiceContext(INFILENAME)
         redis = filter(lambda x: x.name == "redis", ctx.services)[0]
-        clone = ctx.cloneService(redis)
+        clone = redis.clone()
+        ctx.services.append(clone)
         collectorredis = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
         try:
             ctx.reparentService(collectorredis, clone)
         except ValueError as e:
-            self.assertEqual(str(e), "Can't reparent to a clone.")
+            self.assertEqual(str(e), "Can't reparent to a new service.")
             return
         raise ValueError("Failed to detect clone parenting.")
 
+    def test_deployServiceByParentService(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        core = filter(lambda s: s.name == "Zenoss.core", ctx.services)[0]
+        deploy = """{"Name": "deployed-service"}"""
+        ctx.deployService(deploy, core)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        deployed = filter(lambda d: d["Service"]["Name"] == "deployed-service", ctx._ServiceContext__deploy)
+        self.assertEqual(len(deployed), 1)
+        self.assertEqual(deployed[0]["ParentID"], core._Service__data["ID"])
+
+    def test_deployServiceByParentID(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        core = filter(lambda s: s.name == "Zenoss.core", ctx.services)[0]
+        deploy = """{"Name": "deployed-service"}"""
+        ctx._ServiceContext__deployService(deploy, core._Service__data["ID"])
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        deployed = filter(lambda d: d["Service"]["Name"] == "deployed-service", ctx._ServiceContext__deploy)
+        self.assertEqual(len(deployed), 1)
+        self.assertEqual(deployed[0]["ParentID"], core._Service__data["ID"])

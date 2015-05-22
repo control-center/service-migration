@@ -236,7 +236,8 @@ child.description = "parent description"
 
 # Make a clone of the redis service.
 redis = filter(lambda x: x.name == "redis", ctx.services)[0]
-newRedis = ctx.cloneService(redis)
+newRedis = redis.clone()
+ctx.services.append(newRedis)
 
 # Rename it to "clone name"
 newRedis.name = "clone name"
@@ -247,6 +248,33 @@ export.application = "endpoint_application"
 
 # Set the desired state to RUN.
 newRedis.desiredState = sm.RUN
+
+# Deploy a new service from a service definition.
+servicejson = """
+    {
+        "Name": "webservice",
+        "Command": "/usr/bin/python -m SimpleHTTPServer 8000",
+        "Endpoints": [{
+                "Name": "websvc",
+                "Application": "websvc",
+                "PortNumber": 8000,
+                "Protocol": "tcp",
+                "Purpose": "export"
+            }
+        ],
+        "ImageID": "centos:centos6",
+        "Instances": {
+            "Min": 1
+        },
+        "Launch": "auto",
+        "Tags": [
+            "daemon"
+        ]
+    }
+"""
+
+parent = filter(lambda s: s.name == "Zenoss.core", ctx.services)[0]
+svc = ctx.deployService(servicejson, parent)
 
 # Commit the changes.
 ctx.commit()

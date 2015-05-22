@@ -43,7 +43,7 @@ def deserialize(data):
         endpoint.application = ep["Application"]
         endpoint.portnumber = ep["PortNumber"]
         endpoint.protocol = ep["Protocol"]
-        endpoint.addressConfig = config.deserialize(ep["AddressConfig"])
+        endpoint.addressConfig = config.deserialize(ep.get("AddressConfig", {}))
         endpoints.append(endpoint)
     return endpoints
 
