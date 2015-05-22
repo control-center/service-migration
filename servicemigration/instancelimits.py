@@ -1,7 +1,7 @@
 import copy
 
 _default = {
-   "Min": 1,
+   "Min": 0,
    "Max": 0,
    "Default": 0
 }
@@ -12,7 +12,7 @@ def deserialize(data):
     """
     il = InstanceLimits()
     il.__InstanceLimits_data = data
-    il.minimum = data.get("Min", 1)
+    il.minimum = data.get("Min", 0)
     il.maximum = data.get("Max", 0)
     il.default = data.get("Default", 0)
     return il
@@ -31,7 +31,7 @@ class InstanceLimits:
     """
     Wraps a single InstanceLimits
     """
-    def __init__(self, minimum=1, maximum=0, default=0):
+    def __init__(self, minimum=0, maximum=0, default=0):
         self.__data = copy.deepcopy(_default)
         self.minimum = minimum
         self.maximum = maximum
