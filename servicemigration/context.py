@@ -13,6 +13,7 @@ except:
 
 from version import versioned
 import service
+import exceptions
 
 class ServiceContext():
 
@@ -41,11 +42,11 @@ class ServiceContext():
             infile = os.environ["MIGRATE_INPUTFILE"] if "MIGRATE_INPUTFILE" in os.environ else None
         if infile is not None:
             data = json.loads(open(infile, 'r').read())
-        elif ZenUtils:
+        elif ZenUtils and "CONTROLPLANE_TENANT_ID" in os.environ:
             cpClient = ControlPlaneClient(**getConnectionSettings())
             data = cpClient.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
         else:
-            raise ValueError("Can't find migration input data.")
+            raise exceptions.ServiceMigrationError("Can't find migration input data.")
 
         self.services = []
         self.__deploy = []
@@ -62,7 +63,7 @@ class ServiceContext():
             for datum in data:
                 self.services.append(service.deserialize(datum))
         else:
-            raise ValueError("Couldn't read migration input data.")
+            raise exceptions.ServiceMigrationError("Can't read migration input data.")
         if len(self.services) == 0:
             self.version = ""
         else:
@@ -115,7 +116,7 @@ class ServiceContext():
             cpClient = ControlPlaneClient(**getConnectionSettings())
             cpClient.postServicesForMigration(data, serviceId)
         else:
-            raise ValueError("Can't find migration output location.")
+            raise exceptions.ServiceMigrationError("Can't find migration output location.")
 
     def getServiceParent(self, svc):
         # This could be sped up by creating a map of ID:service, but let's not optimize prematurely.

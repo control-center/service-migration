@@ -1,4 +1,4 @@
-
+from exceptions import *
 from version import require
 from context import ServiceContext
 from service import Service, RESTART, STOP, RUN, PAUSE

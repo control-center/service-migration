@@ -178,7 +178,7 @@ class ContextTest(unittest.TestCase):
         del os.environ["MIGRATE_INPUTFILE"]
         try:
             ctx = sm.ServiceContext()
-        except ValueError as e:
+        except sm.ServiceMigrationError as e:
             self.assertEqual(str(e), "Can't find migration input data.")
         else:
             raise ValueError("Failed to fail context creation.")
@@ -186,7 +186,7 @@ class ContextTest(unittest.TestCase):
         del os.environ["MIGRATE_OUTPUTFILE"]
         try:
             ctx.commit()
-        except ValueError as e:
+        except sm.ServiceMigrationError as e:
             self.assertEqual(str(e), "Can't find migration output location.")
         else:
             raise ValueError("Failed to fail context commit.")
