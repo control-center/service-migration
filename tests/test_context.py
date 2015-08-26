@@ -14,12 +14,12 @@ class ContextTest(unittest.TestCase):
         Tests ServiceContext creation and commit.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        self.assertEqual(len(ctx.services), 33)
+        self.assertEqual(len(ctx.services), 34)
         ctx.services.pop()
-        self.assertEqual(len(ctx.services), 32)
+        self.assertEqual(len(ctx.services), 33)
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        self.assertEqual(len(ctx.services), 32)
+        self.assertEqual(len(ctx.services), 33)
 
     def test_ctx_versioning(self):
         """
@@ -97,11 +97,11 @@ class ContextTest(unittest.TestCase):
     def test_findServices(self):
         ctx = sm.ServiceContext(INFILENAME)
         svcs = ctx.findServices(r".*/localhost/localhost/.*")
-        self.assertEqual(len(svcs), 13)
+        self.assertEqual(len(svcs), 14)
         for svc in svcs:
             self.assertEqual("/localhost/localhost" in ctx.getServicePath(svc), True)
         svcs = ctx.findServices(r"Zenoss\.core")
-        self.assertEqual(len(svcs), 33)
+        self.assertEqual(len(svcs), 34)
         svcs = ctx.findServices(r".*redis$")
         self.assertEqual(len(svcs), 2)
 
@@ -163,13 +163,13 @@ class ContextTest(unittest.TestCase):
         os.environ["MIGRATE_INPUTFILE"] = INFILENAME
         os.environ["MIGRATE_OUTPUTFILE"] = OUTFILENAME
         ctx = sm.ServiceContext()
-        self.assertEqual(len(ctx.services), 33)
+        self.assertEqual(len(ctx.services), 34)
         ctx.services.pop()
-        self.assertEqual(len(ctx.services), 32)
+        self.assertEqual(len(ctx.services), 33)
         ctx.commit()
         os.environ["MIGRATE_INPUTFILE"] = OUTFILENAME
         ctx = sm.ServiceContext()
-        self.assertEqual(len(ctx.services), 32)
+        self.assertEqual(len(ctx.services), 33)
 
     def test_get_commit_services_fail(self):
         """
