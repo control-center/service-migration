@@ -57,7 +57,7 @@ This example script should make the following changes:
                     - CommitOnSuccess is set to False
 
                 - A new Command is added:
-                    - Name: "new run"
+                    - Name: "new command"
                     - Command: "new command"
                     - CommitOnSuccess: False
 
