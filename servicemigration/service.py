@@ -1,11 +1,11 @@
 import copy
 
 import endpoint
-import run
 import volume
 import healthcheck
 import instancelimits
 import configfile
+import command
 
 RESTART = -1
 STOP = 0
@@ -23,7 +23,7 @@ def deserialize(data):
     service.startup = data.get("Startup", "")
     service.desiredState = data.get("DesiredState", STOP)
     service.endpoints = endpoint.deserialize(data.get("Endpoints", []))
-    service.runs = run.deserialize(data.get("Runs", {}))
+    service.commands = command.deserialize(data.get("Commands", {}))
     service.volumes = volume.deserialize(data.get("Volumes", []))
     service.healthChecks = healthcheck.deserialize(data.get("HealthChecks", {}))
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
@@ -41,7 +41,7 @@ def serialize(service):
     data["Startup"] = service.startup
     data["DesiredState"] = service.desiredState
     data["Endpoints"] = endpoint.serialize(service.endpoints)
-    data["Runs"] = run.serialize(service.runs)
+    data["Commands"] = command.serialize(service.commands)
     data["Volumes"] = volume.serialize(service.volumes)
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
@@ -56,7 +56,7 @@ class Service():
     """
 
     def __init__(self, name="", description="", startup="",
-        desiredState=STOP, endpoints=[], runs=[], volumes=[], 
+        desiredState=STOP, endpoints=[], commands=[], volumes=[], 
         healthChecks=[], instanceLimits=None, configFiles=[],
         tags=[]):
         """
@@ -68,7 +68,7 @@ class Service():
         self.startup = startup
         self.desiredState = desiredState
         self.endpoints = endpoints
-        self.runs = runs
+        self.commands = commands
         self.volumes = volumes
         self.healthChecks = healthChecks
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits

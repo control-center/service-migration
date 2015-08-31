@@ -49,15 +49,17 @@ This example script should make the following changes:
                         - Port: 3456
                         - Protocol: "UDP"
 
-                - Run "help" is removed
+                - Command "help" is removed
 
-                - Run "upgrade" is altered:
+                - Command "upgrade" is altered:
                     - Name is changed to "upgrade renamed"
                     - Command is changed to "upgrade command"
+                    - CommitOnSuccess is set to False
 
-                - A new Run is added:
-                    - Name: "new run"
-                    - Command: "new run command"
+                - A new Command is added:
+                    - Name: "new command"
+                    - Command: "new command"
+                    - CommitOnSuccess: False
 
                 - Volume having the resource path "zenjobs" is removed
 
@@ -141,16 +143,17 @@ svc.endpoints.append(sm.Endpoint(
     addressConfig = sm.AddressConfig(3456, "UDP")
 ))
 
-# Remove the "help" run.
-svc.runs = filter(lambda x: x.name != "help", svc.runs)
+# Remove the "help" command.
+svc.commands = filter(lambda x: x.name != "help", svc.commands)
 
-# Alter the "upgrade" run.
-upgrade = filter(lambda x: x.name == "upgrade", svc.runs)[0]
+# Alter the "upgrade" command.
+upgrade = filter(lambda x: x.name == "upgrade", svc.commands)[0]
 upgrade.name = "upgrade renamed"
 upgrade.command = "upgrade command"
+upgrade.commitOnSuccess = False
 
-# Add a new run.
-svc.runs.append(sm.Run("new run", "new run command"))
+# Add a new command.
+svc.commands.append(sm.Command("new command", "new command", False))
 
 # Remove the "zenjobs" volume.
 svc.volumes = filter(lambda x: x.resourcePath != "zenjobs", svc.volumes)

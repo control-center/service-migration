@@ -57,69 +57,73 @@ class ServiceTest(unittest.TestCase):
         svc = filter(lambda x: x.startup == "an_unlikely-startup", ctx.services)
         self.assertEqual(len(svc), 1)
 
-    def test_runs_remove(self):
+    def test_commands_remove(self):
         """
-        Tests removing specific runs.
+        Tests removing specific commands.
         """
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        self.assertEqual(len(svc.runs), 7)
-        svc.runs = filter(lambda r: r.name != "apply-custom-patches", svc.runs)
-        svc.runs = filter(lambda r: r.name != "help", svc.runs)
+        self.assertEqual(len(svc.commands), 8)
+        svc.commands = filter(lambda r: r.name != "apply-custom-patches", svc.commands)
+        svc.commands = filter(lambda r: r.name != "help", svc.commands)
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        self.assertEqual(len(svc.runs), 5)
-        for run in svc.runs:
-            if run.name in ["help", "apply-custom-patches"]:
-                raise ValueError("Error removing run.")
+        self.assertEqual(len(svc.commands), 6)
+        for command in svc.commands:
+            if command.name in ["help", "apply-custom-patches"]:
+                raise ValueError("Error removing command.")
 
-    def test_runs_add(self):
+    def test_commands_add(self):
         """
-        Tests adding runs to an existing list.
+        Tests adding commands to an existing list.
         """
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        self.assertEqual(len(svc.runs), 7)
-        svc.runs.append(sm.Run("foo", "bar"))
-        svc.runs.append(sm.Run("bar", "baz"))
+        self.assertEqual(len(svc.commands), 8)
+        svc.commands.append(sm.Command("foo", "bar", False))
+        svc.commands.append(sm.Command("bar", "baz", True))
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        if not "foo" in [run.name for run in svc.runs]:
-            raise ValueError("Failed to alter runs.")
-        if not "bar" in [run.name for run in svc.runs]:
-            raise ValueError("Failed to alter runs.")
-        for run in svc.runs:
-            if run.name == "foo":
-                self.assertEqual(run.command, "bar")
-            if run.name == "bar":
-                self.assertEqual(run.command, "baz")
-        self.assertEqual(len(svc.runs), 9)
+        if not "foo" in [command.name for command in svc.commands]:
+            raise ValueError("Failed to alter commands.")
+        if not "bar" in [command.name for command in svc.commands]:
+            raise ValueError("Failed to alter commands.")
+        for command in svc.commands:
+            if command.name == "foo":
+                self.assertEqual(command.command, "bar")
+                self.assertFalse(command.commitOnSuccess)
+            if command.name == "bar":
+                self.assertEqual(command.command, "baz")
+                self.assertTrue(command.commitOnSuccess)
+        self.assertEqual(len(svc.commands), 10)
 
-    def test_runs_replace(self):
+    def test_commands_replace(self):
         """
-        Tests completely replacing the runs list.
+        Tests completely replacing the commands list.
         """
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        svc.runs = [
-            sm.Run("foo", "bar"),            
-            sm.Run("bar", "baz"),            
+        svc.commands = [
+            sm.Command("foo", "bar", False),
+            sm.Command("bar", "baz", True),
         ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        if not "foo" in [run.name for run in svc.runs]:
-            raise ValueError("Failed to alter runs.")
-        if not "bar" in [run.name for run in svc.runs]:
-            raise ValueError("Failed to alter runs.")
-        for run in svc.runs:
-            if run.name == "foo":
-                self.assertEqual(run.command, "bar")
-            if run.name == "bar":
-                self.assertEqual(run.command, "baz")
-        self.assertEqual(len(svc.runs), 2)
+        if not "foo" in [command.name for command in svc.commands]:
+            raise ValueError("Failed to alter commands.")
+        if not "bar" in [command.name for command in svc.commands]:
+            raise ValueError("Failed to alter commands.")
+        for command in svc.commands:
+            if command.name == "foo":
+                self.assertEqual(command.command, "bar")
+                self.assertFalse(command.commitOnSuccess)
+            if command.name == "bar":
+                self.assertEqual(command.command, "baz")
+                self.assertTrue(command.commitOnSuccess)
+        self.assertEqual(len(svc.commands), 2)
 
     def test_endpoints_remove(self):
         """
@@ -407,7 +411,7 @@ class ServiceTest(unittest.TestCase):
         """
         ctx = sm.ServiceContext(INFILENAME)
         svcs = filter(lambda s: "collector" in s.tags and "daemon" in s.tags, ctx.services)
-        self.assertEqual(len(svcs), 13)
+        self.assertEqual(len(svcs), 14)
 
     def test_tags_alter(self):
         """
@@ -439,7 +443,7 @@ class ServiceTest(unittest.TestCase):
         Tests cloning a service.
         """
         ctx = sm.ServiceContext(INFILENAME)
-        self.assertEqual(len(ctx.services), 33)
+        self.assertEqual(len(ctx.services), 34)
         redis = filter(lambda s: s.name == "redis", ctx.services)[0]
         clone = redis.clone()
         clone.name = "clone name"
@@ -448,5 +452,5 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(OUTFILENAME)
         clone = filter(lambda s: s.name == "clone name", ctx.services)[0]
         self.assertEqual(clone.description, redis.description)
-        self.assertEqual(len(ctx.services), 34)
+        self.assertEqual(len(ctx.services), 35)
 
