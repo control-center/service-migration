@@ -81,8 +81,10 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         self.assertEqual(len(svc.commands), 8)
-        svc.commands.append(sm.Command("foo", "bar", False))
-        svc.commands.append(sm.Command("bar", "baz", True))
+        svc.commands.append(sm.Command("foo", "bar", commitOnSuccess=False,
+                                        description="Description of foo bar"))
+        svc.commands.append(sm.Command("bar", "baz", commitOnSuccess=True,
+                                       description="Description of bar baz"))
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
@@ -93,9 +95,11 @@ class ServiceTest(unittest.TestCase):
         for command in svc.commands:
             if command.name == "foo":
                 self.assertEqual(command.command, "bar")
+                self.assertEqual(command.description, "Description of foo bar")
                 self.assertFalse(command.commitOnSuccess)
             if command.name == "bar":
                 self.assertEqual(command.command, "baz")
+                self.assertEqual(command.description, "Description of bar baz")
                 self.assertTrue(command.commitOnSuccess)
         self.assertEqual(len(svc.commands), 10)
 
@@ -106,8 +110,8 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         svc.commands = [
-            sm.Command("foo", "bar", False),
-            sm.Command("bar", "baz", True),
+            sm.Command("foo", "bar", commitOnSuccess=False),
+            sm.Command("bar", "baz", commitOnSuccess=True),
         ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
