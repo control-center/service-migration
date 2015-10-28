@@ -6,6 +6,7 @@ import healthcheck
 import instancelimits
 import configfile
 import command
+import logconfig
 import monitoringprofile
 
 RESTART = -1
@@ -31,6 +32,7 @@ def deserialize(data):
     service.configFiles = configfile.deserialize(data.get("OriginalConfigs", {}))
     service.monitoringProfile = monitoringprofile.deserialize(data.get("MonitoringProfile", {}))
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
+    service.logConfigs = logconfig.deserialize(data.get("LogConfigs", []))
     return service
 
 def serialize(service):
@@ -50,6 +52,7 @@ def serialize(service):
     data["OriginalConfigs"] = configfile.serialize(service.configFiles)
     data["MonitoringProfile"] = monitoringprofile.serialize(service.monitoringProfile)
     data["Tags"] = service.tags[:]
+    data["LogConfigs"] = logconfig.serialize(service.logConfigs)
     return data
 
 
@@ -59,9 +62,9 @@ class Service():
     """
 
     def __init__(self, name="", description="", startup="",
-        desiredState=STOP, endpoints=[], commands=[], volumes=[], 
-        healthChecks=[], instanceLimits=None, configFiles=[],
-        monitoringProfile=None, tags=[]):
+        desiredState=STOP, endpoints=None, commands=None, volumes=None,
+        healthChecks=None, instanceLimits=None, configFiles=None,
+        monitoringProfile=None, tags=None, logConfigs=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -70,14 +73,15 @@ class Service():
         self.description = description
         self.startup = startup
         self.desiredState = desiredState
-        self.endpoints = endpoints
-        self.commands = commands
-        self.volumes = volumes
-        self.healthChecks = healthChecks
+        self.endpoints = endpoints or []
+        self.commands = commands or []
+        self.volumes = volumes or []
+        self.healthChecks = healthChecks or []
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
-        self.configFiles = configFiles
+        self.configFiles = configFiles or []
         self.monitoringProfile = monitoringProfile
-        self.tags = tags
+        self.tags = tags or []
+        self.logConfigs = logConfigs or []
 
     def clone(self):
         cl = copy.deepcopy(self)
