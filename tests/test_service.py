@@ -405,6 +405,141 @@ class ServiceTest(unittest.TestCase):
                 self.assertEqual(cf.permissions, "111")
         self.assertEqual(len(svc.configFiles), 2)
 
+    def test_metricconfig_remove(self):
+        """
+        Tests finding and removing a MetricConfig from a MonitoringProfile by ID.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.metricConfigs), 7)
+        mc_ids = [mc.ID for mc in monpro.metricConfigs]
+        self.assertEqual(len(mc_ids), 7)
+        self.assertTrue('jvm.thread' in mc_ids)
+        monpro.metricConfigs.pop(mc_ids.index('jvm.thread'))
+        ctx.commit(OUTFILENAME)
+        
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.metricConfigs), 6)
+        mc_ids = [mc.ID for mc in monpro.metricConfigs]
+        self.assertEqual(len(mc_ids), 6)
+        self.assertTrue('jvm.thread' not in mc_ids)
+
+    def test_metricconfig_add(self):
+        """
+        Tests creating and adding a new MetricConfig to a MonitoringProfile.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.metricConfigs), 7)
+
+        mc = sm.monitoringprofile.metricconfig.MetricConfig(
+            ID="foo", name="Foo", description="Test MC")
+        monpro.metricConfigs.append(mc)
+
+        ctx.commit(OUTFILENAME)
+        
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.metricConfigs), 8)
+        mc_ids = [mc.ID for mc in monpro.metricConfigs]
+        self.assertEqual(len(mc_ids), 8)
+        self.assertTrue('foo' in mc_ids)
+        mc_foo = monpro.metricConfigs[mc_ids.index('foo')]
+        self.assertEqual(mc_foo.ID, "foo")
+        self.assertEqual(mc_foo.name, "Foo")
+        self.assertEqual(mc_foo.description, "Test MC")
+        self.assertEqual(mc_foo.metrics, [])
+
+    def test_metricconfig_modify(self):
+        """
+        Tests finding MetricConfig in a MonitoringProfile by ID, and altering
+        it in place.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.metricConfigs), 7)
+        mc_ids = [mc.ID for mc in monpro.metricConfigs]
+        self.assertEqual(len(mc_ids), 7)
+        self.assertTrue('jvm.thread' in mc_ids)
+        mc_jvmthread = monpro.metricConfigs[mc_ids.index('jvm.thread')]
+        mc_jvmthread.description = "JVM Thread with a changed description"
+        ctx.commit(OUTFILENAME)
+        
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.metricConfigs), 7)
+        mc_ids = [mc.ID for mc in monpro.metricConfigs]
+        self.assertEqual(len(mc_ids), 7)
+        self.assertTrue('jvm.thread' in mc_ids)
+        mc_jvmthread = monpro.metricConfigs[mc_ids.index('jvm.thread')]
+        self.assertEqual(mc_jvmthread.description, "JVM Thread with a changed description")
+
+    def test_graphconfig_remove(self):
+        """
+        Tests finding and removing a GraphConfig from a MonitoringProfile by ID.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.graphConfigs), 2)
+        gc_ids = [gc.graphID for gc in monpro.graphConfigs]
+        self.assertEqual(len(gc_ids), 2)
+        self.assertTrue('metricqueue' in gc_ids)
+        monpro.graphConfigs.pop(gc_ids.index('metricqueue'))
+        ctx.commit(OUTFILENAME)
+        
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.graphConfigs), 1)
+        gc_ids = [gc.graphID for gc in monpro.graphConfigs]
+        self.assertEqual(len(gc_ids), 1)
+        self.assertTrue('metricqueue' not in gc_ids)
+
+    def test_graphconfig_add(self):
+        """
+        Tests creating and adding a new GraphConfig to a MonitoringProfile.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.graphConfigs), 0)
+        gc = sm.monitoringprofile.graphconfig.GraphConfig(
+            graphID="widgets")
+        monpro.graphConfigs.append(gc)
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.graphConfigs), 1)
+        gc_ids = [gc.graphID for gc in monpro.graphConfigs]
+        self.assertEqual(len(gc_ids), 1)
+        self.assertTrue('widgets' in gc_ids)
+
+    def test_graphconfig_modify(self):
+        """
+        Tests modifying a GraphConfig of a MonitoringProfile in place.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.graphConfigs), 1)
+        monpro.graphConfigs[0].description = "Modified description"
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
+        monpro = svc.monitoringProfile
+        self.assertEqual(len(monpro.graphConfigs), 1)
+        desc = monpro.graphConfigs[0].description
+        self.assertEqual(desc, "Modified description")
+
     def test_tags_filter(self):
         """
         Tests filtering a service by tags.
