@@ -6,6 +6,7 @@ import healthcheck
 import instancelimits
 import configfile
 import command
+import monitoringprofile
 
 RESTART = -1
 STOP = 0
@@ -28,6 +29,7 @@ def deserialize(data):
     service.healthChecks = healthcheck.deserialize(data.get("HealthChecks", {}))
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
     service.configFiles = configfile.deserialize(data.get("OriginalConfigs", {}))
+    service.monitoringProfile = monitoringprofile.deserialize(data.get("MonitoringProfile", {}))
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
     return service
 
@@ -46,6 +48,7 @@ def serialize(service):
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
     data["OriginalConfigs"] = configfile.serialize(service.configFiles)
+    data["MonitoringProfile"] = monitoringprofile.serialize(service.monitoringProfile)
     data["Tags"] = service.tags[:]
     return data
 
@@ -58,7 +61,7 @@ class Service():
     def __init__(self, name="", description="", startup="",
         desiredState=STOP, endpoints=[], commands=[], volumes=[], 
         healthChecks=[], instanceLimits=None, configFiles=[],
-        tags=[]):
+        monitoringProfile=None, tags=[]):
         """
         Internal use only. Do not call to create a service.
         """
@@ -73,6 +76,7 @@ class Service():
         self.healthChecks = healthChecks
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
         self.configFiles = configFiles
+        self.monitoringProfile = monitoringProfile
         self.tags = tags
 
     def clone(self):
