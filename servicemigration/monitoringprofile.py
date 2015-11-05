@@ -8,6 +8,9 @@ default = {
     "MetricConfigs": [
         copy.deepcopy(metricconfig.default),
         ],
+    "GraphConfigs": [
+        copy.deepcopy(graphconfig.default),
+        ],
 }
 
 

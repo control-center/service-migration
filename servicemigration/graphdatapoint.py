@@ -6,6 +6,7 @@ default = {
     "expression": "",
     "fill": False,
     "format": "%d",
+    "id": "",
     "legend": "",
     "metric": "",
     "metricSource": "r",
