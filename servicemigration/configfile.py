@@ -39,7 +39,7 @@ def serialize(configfiles):
     return data
 
 
-class ConfigFile:
+class ConfigFile(object):
     """
     Wraps a single service config file.
     """

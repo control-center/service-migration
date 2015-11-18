@@ -15,7 +15,7 @@ from version import versioned
 import service
 import exceptions
 
-class ServiceContext():
+class ServiceContext(object):
 
     @versioned
     def __init__(self, filename=None):

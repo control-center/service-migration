@@ -65,7 +65,7 @@ def serialize(endpoints):
     return data
 
 
-class Endpoint:
+class Endpoint(object):
     """
     Wraps a single service endpoint.
     """

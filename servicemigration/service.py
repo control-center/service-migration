@@ -56,7 +56,7 @@ def serialize(service):
     return data
 
 
-class Service():
+class Service(object):
     """
     Wraps a single service.
     """
