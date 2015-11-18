@@ -33,7 +33,7 @@ def serialize(commands):
     return data
 
 
-class Command:
+class Command(object):
     """
     Wraps a single service command.
     """

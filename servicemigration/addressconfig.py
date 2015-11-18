@@ -25,7 +25,7 @@ def serialize(config):
     return data
 
 
-class AddressConfig:
+class AddressConfig(object):
     """
     Wraps a single AddressConfig.
     """

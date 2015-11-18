@@ -27,7 +27,7 @@ def serialize(il):
     data["Default"] = il.default
     return data
 
-class InstanceLimits:
+class InstanceLimits(object):
     """
     Wraps a single InstanceLimits
     """

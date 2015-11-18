@@ -36,7 +36,7 @@ def serialize(healthchecks):
     return data
 
 
-class HealthCheck:
+class HealthCheck(object):
     """
     Wraps a single service healthcheck.
     """

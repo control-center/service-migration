@@ -39,7 +39,7 @@ def serialize(volumes):
         data.append(v)
     return data
 
-class Volume:
+class Volume(object):
     """
     Wraps a single service volume.
     """
