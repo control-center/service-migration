@@ -39,7 +39,7 @@ def deserialize(data):
         p.metricSource = d.get("metricSource")
         p.rate = d.get("rate", False)
         p.rateOptions = d.get("rateOptions")
-        p.pointType = d.get("pointType")
+        p.pointType = d.get("type")
         datapoints.append(p)
     return datapoints
 
@@ -65,7 +65,7 @@ def serialize(datapoints):
         d["metricSource"] = p.metricSource
         d["rate"] = p.rate
         d["rateOptions"] = p.rateOptions
-        d["pointType"] = p.pointType
+        d["type"] = p.pointType
         data.append(d)
     return data
     
