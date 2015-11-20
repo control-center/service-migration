@@ -513,6 +513,7 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(len(monpro.graphConfigs), 0)
         gc = sm.monitoringprofile.graphconfig.GraphConfig(
             graphID="widgets")
+        gc.datapoints = [sm.graphdatapoint.GraphDatapoint(pointType="dot")]
         monpro.graphConfigs.append(gc)
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
@@ -522,6 +523,8 @@ class ServiceTest(unittest.TestCase):
         gc_ids = [gc.graphID for gc in monpro.graphConfigs]
         self.assertEqual(len(gc_ids), 1)
         self.assertTrue('widgets' in gc_ids)
+        self.assertEqual(len(monpro.graphConfigs[0].datapoints), 1)
+        self.assertEqual(monpro.graphConfigs[0].datapoints[0].pointType, "dot")
 
     def test_graphconfig_modify(self):
         """
@@ -532,6 +535,7 @@ class ServiceTest(unittest.TestCase):
         monpro = svc.monitoringProfile
         self.assertEqual(len(monpro.graphConfigs), 1)
         monpro.graphConfigs[0].description = "Modified description"
+        monpro.graphConfigs[0].datapoints[0].pointType = "dot"
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
@@ -539,6 +543,8 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(len(monpro.graphConfigs), 1)
         desc = monpro.graphConfigs[0].description
         self.assertEqual(desc, "Modified description")
+        pt = monpro.graphConfigs[0].datapoints[0].pointType
+        self.assertEqual(pt, "dot")
 
     def test_tags_filter(self):
         """
