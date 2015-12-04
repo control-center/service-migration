@@ -29,7 +29,7 @@ def deserialize(data):
     service.volumes = volume.deserialize(data.get("Volumes", []))
     service.healthChecks = healthcheck.deserialize(data.get("HealthChecks", {}))
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
-    service.configFiles = configfile.deserialize(data.get("OriginalConfigs", {}))
+    service.originalConfigs = configfile.deserialize(data.get("OriginalConfigs", {}))
     service.monitoringProfile = monitoringprofile.deserialize(data.get("MonitoringProfile", {}))
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
     service.logConfigs = logconfig.deserialize(data.get("LogConfigs", []))
@@ -49,7 +49,7 @@ def serialize(service):
     data["Volumes"] = volume.serialize(service.volumes)
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
-    data["OriginalConfigs"] = configfile.serialize(service.configFiles)
+    data["OriginalConfigs"] = configfile.serialize(service.originalConfigs)
     data["MonitoringProfile"] = monitoringprofile.serialize(service.monitoringProfile)
     data["Tags"] = service.tags[:]
     data["LogConfigs"] = logconfig.serialize(service.logConfigs)
@@ -63,7 +63,7 @@ class Service(object):
 
     def __init__(self, name="", description="", startup="",
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
-        healthChecks=None, instanceLimits=None, configFiles=None,
+        healthChecks=None, instanceLimits=None, originalConfigs=None,
         monitoringProfile=None, tags=None, logConfigs=None):
         """
         Internal use only. Do not call to create a service.
@@ -78,7 +78,7 @@ class Service(object):
         self.volumes = volumes or []
         self.healthChecks = healthChecks or []
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
-        self.configFiles = configFiles or []
+        self.originalConfigs = originalConfigs or []
         self.monitoringProfile = monitoringProfile
         self.tags = tags or []
         self.logConfigs = logConfigs or []

@@ -192,17 +192,17 @@ svc.healthChecks.append(sm.HealthCheck(
 ))
 
 # Remove the "/opt/zenoss/etc/global.conf" config file.
-svc.configFiles = filter(lambda x: x.name != "/opt/zenoss/etc/global.conf", svc.configFiles)
+svc.originalConfigs = filter(lambda x: x.name != "/opt/zenoss/etc/global.conf", svc.originalConfigs)
 
 # Alter the "/opt/zenoss/etc/zope.conf" config file.
-zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", svc.configFiles)[0]
+zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", svc.originalConfigs)[0]
 zopeconf.filename = "zope_config_filename"
 zopeconf.owner = "foo:bar"
 zopeconf.permissions = "777"
 zopeconf.content = "Zope conf contents"
 
 # Add a new config file.
-svc.configFiles.append(sm.ConfigFile(
+svc.originalConfigs.append(sm.ConfigFile(
     name = "new configfile name",
     filename = "new configfile filename",
     owner = "new configfile owner",
