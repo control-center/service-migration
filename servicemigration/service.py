@@ -8,6 +8,7 @@ import configfile
 import command
 import logconfig
 import monitoringprofile
+import prereq
 
 RESTART = -1
 STOP = 0
@@ -33,6 +34,7 @@ def deserialize(data):
     service.monitoringProfile = monitoringprofile.deserialize(data.get("MonitoringProfile", {}))
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
     service.logConfigs = logconfig.deserialize(data.get("LogConfigs", []))
+    service.prereqs = prereq.deserialize(data.get("Prereqs", []))
     return service
 
 def serialize(service):
@@ -53,6 +55,7 @@ def serialize(service):
     data["MonitoringProfile"] = monitoringprofile.serialize(service.monitoringProfile)
     data["Tags"] = service.tags[:]
     data["LogConfigs"] = logconfig.serialize(service.logConfigs)
+    data["Prereqs"] = prereq.serialize(service.prereqs)
     return data
 
 
@@ -64,7 +67,7 @@ class Service(object):
     def __init__(self, name="", description="", startup="",
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
         healthChecks=None, instanceLimits=None, originalConfigs=None,
-        monitoringProfile=None, tags=None, logConfigs=None):
+        monitoringProfile=None, tags=None, logConfigs=None, prereqs=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -82,6 +85,7 @@ class Service(object):
         self.monitoringProfile = monitoringProfile
         self.tags = tags or []
         self.logConfigs = logConfigs or []
+        self.prereqs = prereqs or []
 
     def clone(self):
         cl = copy.deepcopy(self)
