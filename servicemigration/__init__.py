@@ -10,3 +10,4 @@ from addressconfig import AddressConfig
 from instancelimits import InstanceLimits
 from configfile import ConfigFile
 from logconfig import LogConfig
+from prereq import Prereq

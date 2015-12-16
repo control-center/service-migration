@@ -171,8 +171,8 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         svc.endpoints = [
-            sm.Endpoint("foo", "bar"),            
-            sm.Endpoint("bar", "baz"),            
+            sm.Endpoint("foo", "bar"),
+            sm.Endpoint("bar", "baz"),
         ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
@@ -234,8 +234,8 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         svc.volumes = [
-            sm.Volume("foo", "bar"),            
-            sm.Volume("bar", "baz"),            
+            sm.Volume("foo", "bar"),
+            sm.Volume("bar", "baz"),
         ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
@@ -297,8 +297,8 @@ class ServiceTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         svc.healthChecks = [
-            sm.HealthCheck("foo", "bar"),            
-            sm.HealthCheck("bar", "baz"),            
+            sm.HealthCheck("foo", "bar"),
+            sm.HealthCheck("bar", "baz"),
         ]
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
@@ -313,6 +313,55 @@ class ServiceTest(unittest.TestCase):
             if hc.name == "bar":
                 self.assertEqual(hc.script, "baz")
         self.assertEqual(len(svc.healthChecks), 2)
+
+    def test_add_prereqs(self):
+        # Reset
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        newPr = sm.Prereq("Andy", "TheCommand")
+        svc.prereqs = [newPr]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        self.assertEqual(len(svc.prereqs), 1)
+        self.assertEqual(svc.prereqs[0].name, "Andy")
+        self.assertEqual(svc.prereqs[0].script, "TheCommand")
+
+        # Add one
+        svc.prereqs.append(sm.Prereq("Bob", "ThatCommand"))
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        sortedPrereqs = sorted(svc.prereqs, key=lambda k: k.name)
+        self.assertEqual(len(svc.prereqs), 2)
+        self.assertEqual(sortedPrereqs[0].name, "Andy")
+        self.assertEqual(sortedPrereqs[0].script, "TheCommand")
+        self.assertEqual(sortedPrereqs[1].name, "Bob")
+        self.assertEqual(sortedPrereqs[1].script, "ThatCommand")
+
+    def test_modify_prereqs(self):
+        # Modify
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        newPr = sm.Prereq("Andy", "TheCommand")
+        svc.prereqs = [newPr]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        svc.prereqs[0].name = "Alice"
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        self.assertEqual(len(svc.prereqs), 1)
+        self.assertEqual(svc.prereqs[0].name, "Alice")
+        self.assertEqual(svc.prereqs[0].script, "TheCommand")
+
+        # Delete
+        svc.prereqs = []
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.name == "HMaster", ctx.services)[0]
+        self.assertEqual(svc.prereqs, [])
 
     def test_instancelimits_change(self):
         """
@@ -418,7 +467,7 @@ class ServiceTest(unittest.TestCase):
         self.assertTrue('jvm.thread' in mc_ids)
         monpro.metricConfigs.pop(mc_ids.index('jvm.thread'))
         ctx.commit(OUTFILENAME)
-        
+
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
         monpro = svc.monitoringProfile
@@ -441,7 +490,7 @@ class ServiceTest(unittest.TestCase):
         monpro.metricConfigs.append(mc)
 
         ctx.commit(OUTFILENAME)
-        
+
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
         monpro = svc.monitoringProfile
@@ -470,7 +519,7 @@ class ServiceTest(unittest.TestCase):
         mc_jvmthread = monpro.metricConfigs[mc_ids.index('jvm.thread')]
         mc_jvmthread.description = "JVM Thread with a changed description"
         ctx.commit(OUTFILENAME)
-        
+
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "CentralQuery", ctx.services)[0]
         monpro = svc.monitoringProfile
@@ -494,7 +543,7 @@ class ServiceTest(unittest.TestCase):
         self.assertTrue('metricqueue' in gc_ids)
         monpro.graphConfigs.pop(gc_ids.index('metricqueue'))
         ctx.commit(OUTFILENAME)
-        
+
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.name == "collectorredis", ctx.services)[0]
         monpro = svc.monitoringProfile
