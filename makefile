@@ -15,6 +15,11 @@ IMAGE_NAME      := zenoss/service-migration
 IMAGE_TAG       := $(shell cat servicemigration/VERSION)
 IMAGE_VERSION   := $(shell python -c "print '.'.join('$(IMAGE_TAG)'.split('.')[0])")
 
+PROJECT_DIR      := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+VENV_ACTIVATE_CMD := . $(PROJECT_DIR)/venv/bin/activate
+
+.PHONY: venv
+
 default: buildImage
 
 clean:
@@ -34,7 +39,8 @@ test:
 pushImage:
 	docker push $(IMAGE_NAME)_v$(IMAGE_VERSION):$(IMAGE_TAG)
 
-wheel:
+wheel: venv
+	$(VENV_ACTIVATE_CMD); \
 	python setup.py bdist_wheel
 	mv dist/* .
 	rm -rf build/bdist.linux-x86_64 build/lib.linux-x86_64-2.7 servicemigration.egg-info dist
@@ -44,3 +50,9 @@ example:
 
 run-example:
 	serviced service migrate Zenoss.core example.py
+
+venv:
+	rm -rf $(PROJECT_DIR)/venv
+	virtualenv $(PROJECT_DIR)/venv
+	$(VENV_ACTIVATE_CMD); \
+	pip install -r $(PROJECT_DIR)/requirements.txt
