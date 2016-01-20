@@ -31,6 +31,7 @@ def deserialize(data):
     service.healthChecks = healthcheck.deserialize(data.get("HealthChecks", {}))
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
     service.originalConfigs = configfile.deserialize(data.get("OriginalConfigs", {}))
+    service.configFiles = configfile.deserialize(data.get("ConfigFiles", {}))
     service.monitoringProfile = monitoringprofile.deserialize(data.get("MonitoringProfile", {}))
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
     service.logConfigs = logconfig.deserialize(data.get("LogConfigs", []))
@@ -52,6 +53,7 @@ def serialize(service):
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
     data["OriginalConfigs"] = configfile.serialize(service.originalConfigs)
+    data["ConfigFiles"] = configfile.serialize(service.configFiles)
     data["MonitoringProfile"] = monitoringprofile.serialize(service.monitoringProfile)
     data["Tags"] = service.tags[:]
     data["LogConfigs"] = logconfig.serialize(service.logConfigs)
@@ -66,8 +68,9 @@ class Service(object):
 
     def __init__(self, name="", description="", startup="",
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
-        healthChecks=None, instanceLimits=None, originalConfigs=None,
-        monitoringProfile=None, tags=None, logConfigs=None, prereqs=None):
+        healthChecks=None, instanceLimits=None, originalConfigs=None, 
+        configFiles=None, monitoringProfile=None, tags=None, logConfigs=None, 
+        prereqs=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -82,6 +85,7 @@ class Service(object):
         self.healthChecks = healthChecks or []
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
         self.originalConfigs = originalConfigs or []
+        self.configFiles = configFiles or []
         self.monitoringProfile = monitoringProfile
         self.tags = tags or []
         self.logConfigs = logConfigs or []
