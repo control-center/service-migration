@@ -36,6 +36,7 @@ def deserialize(data):
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
     service.logConfigs = logconfig.deserialize(data.get("LogConfigs", []))
     service.prereqs = prereq.deserialize(data.get("Prereqs", []))
+    service.ramCommitment = data.get("RAMCommitment", [])
     return service
 
 def serialize(service):
@@ -58,6 +59,7 @@ def serialize(service):
     data["Tags"] = service.tags[:]
     data["LogConfigs"] = logconfig.serialize(service.logConfigs)
     data["Prereqs"] = prereq.serialize(service.prereqs)
+    data["RAMCommitment"] = service.ramCommitment
     return data
 
 
@@ -70,7 +72,7 @@ class Service(object):
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
         healthChecks=None, instanceLimits=None, originalConfigs=None, 
         configFiles=None, monitoringProfile=None, tags=None, logConfigs=None, 
-        prereqs=None):
+        prereqs=None, ramCommitment=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -90,6 +92,7 @@ class Service(object):
         self.tags = tags or []
         self.logConfigs = logConfigs or []
         self.prereqs = prereqs or []
+        self.ramCommitment = ramCommitment or []
 
     def clone(self):
         cl = copy.deepcopy(self)
