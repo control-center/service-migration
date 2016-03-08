@@ -16,6 +16,8 @@ def deserialize(data):
     Parse data into Metrics.
     """
     metrics = []
+    if not data:
+        return metrics
     for d in data:
         m = Metric()
         m._Metric__data = d
@@ -35,6 +37,8 @@ def serialize(metrics):
     Dump Metrics as data.
     """
     data = []
+    if not metrics:
+        return data
     for m in metrics:
         d = copy.deepcopy(m._Metric__data)
         d["ID"] = m.ID
