@@ -2212,8 +2212,12 @@
         ],
         "MemoryLimit": 0,
         "MonitoringProfile": {
-            "GraphConfigs": [],
-            "MetricConfigs": [],
+            "GraphConfigs": null,
+            "MetricConfigs": [
+                {
+                    "Metrics": null
+                }
+            ],
             "ThresholdConfigs": []
         },
         "Name": "RabbitMQ",

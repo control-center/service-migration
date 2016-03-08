@@ -32,6 +32,8 @@ def deserialize(data):
     Parse data into GraphConfigs.
     """
     graphconfigs = []
+    if not data:
+        return graphconfigs
     for d in data:
         gc = GraphConfig()
         gc._GraphConfig__data = d
@@ -60,6 +62,8 @@ def serialize(graphconfigs):
     Dump GraphConfigs as data.
     """
     data = []
+    if not graphconfigs:
+        return data
     for gc in graphconfigs:
         d = copy.deepcopy(gc._GraphConfig__data)
         d["id"] = gc.graphID
