@@ -44,6 +44,7 @@ def deserialize(data):
         endpoint.portnumber = ep["PortNumber"]
         endpoint.protocol = ep["Protocol"]
         endpoint.addressConfig = config.deserialize(ep.get("AddressConfig", {}))
+        endpoint.applicationtemplate = ep.get("ApplicationTemplate", "")
         endpoints.append(endpoint)
     return endpoints
 
@@ -61,6 +62,7 @@ def serialize(endpoints):
         d["PortNumber"] = ep.portnumber
         d["Protocol"] = ep.protocol
         d["AddressConfig"] = config.serialize(ep.addressConfig)
+        d["ApplicationTemplate"] = ep.applicationtemplate
         data.append(d)
     return data
 
@@ -69,7 +71,7 @@ class Endpoint(object):
     """
     Wraps a single service endpoint.
     """
-    def __init__(self, name="", purpose="", application="", portnumber=0, protocol="", addressConfig=None):
+    def __init__(self, name="", purpose="", application="", portnumber=0, protocol="", addressConfig=None, applicationtemplate=""):
         self.__data = copy.deepcopy(default)
         self.name = name
         self.purpose = purpose
@@ -77,3 +79,4 @@ class Endpoint(object):
         self.portnumber = portnumber
         self.protocol = protocol
         self.addressConfig = config.AddressConfig() if addressConfig is None else addressConfig
+        self.applicationtemplate = applicationtemplate
