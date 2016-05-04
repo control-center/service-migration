@@ -9,6 +9,20 @@ OUTFILENAME = os.path.join(os.path.dirname(__file__), "out.json")
 
 class ServiceTest(unittest.TestCase):
 
+    def test_imageId_change(self):
+        """
+        Tests changing an imageID
+        """
+
+        imageID = "localhost:5000/fake:latest"
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.imageID = imageID
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(svc.imageID, imageID)
+
     def test_description_remove(self):
         """
         Tests completely removing a description.
