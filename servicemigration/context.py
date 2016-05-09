@@ -40,11 +40,13 @@ class ServiceContext(object):
             infile = filename
         else:
             infile = os.environ["MIGRATE_INPUTFILE"] if "MIGRATE_INPUTFILE" in os.environ else None
+
+        self._client = ControlPlaneClient(**getConnectionSettings())
+
         if infile is not None:
             data = json.loads(open(infile, 'r').read())
         elif ZenUtils and "CONTROLPLANE_TENANT_ID" in os.environ:
-            cpClient = ControlPlaneClient(**getConnectionSettings())
-            data = cpClient.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
+            data = self._client.getServicesForMigration(os.environ["CONTROLPLANE_TENANT_ID"])
         else:
             raise exceptions.ServiceMigrationError("Can't find migration input data.")
 
@@ -72,7 +74,7 @@ class ServiceContext(object):
 
     def commit(self, filename=None):
         """
-        Commits the service to the given filename. 
+        Commits the service to the given filename.
 
         Output precedence is:
             1. The filename argument passed to this function.
@@ -113,8 +115,7 @@ class ServiceContext(object):
             f.write(data)
             f.close()
         elif ZenUtils:
-            cpClient = ControlPlaneClient(**getConnectionSettings())
-            cpClient.postServicesForMigration(data, serviceId)
+            self._client.postServicesForMigration(data, serviceId)
         else:
             raise exceptions.ServiceMigrationError("Can't find migration output location.")
 
