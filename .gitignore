@@ -54,5 +54,5 @@ docs/_build/
 # PyBuilder
 target/
 
-build/servicemigration
+build/
 out.json

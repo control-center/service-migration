@@ -10,25 +10,12 @@ on one or more services.  The script is invoked by serviced, either by the CLI c
 ### Migration SDK
 TBD
 
-## Docker Container
-
-serviced runs the script in a Docker container using the Docker image defined by this repo.
-The image expects the migration script and its input/ouput files to be be mounted into the `/migration`
-directory within the image.  The SDK expects the caller to pass two files as arguments to the Python script:
- * a JSON file containing an array of 1 or more service definitions
- * the output file which will contain the modified JSON array if the migration completes successfully
-
-The caller can invoke the migration script with a command like:
-```
-docker run --rm -t -v "$PWD"/migration:/migration zenoss/service-migration:v1 python /migration/migrate.py /migration/input.json /migration/output.json;
-```
-
 ## Build
 
 The makefile in this repo supports the following targets:
 
  * `clean` - deletes all intermediate build artifacts (e.g. `.pyc` files)
  * `test` - executes unit-tests for the service migration SDK
- * `buildImage` - builds the Docker image containing the migration SDK
+ * `wheel - builds the python wheel artifact
 
-The default target will execute the unit-tests and build the docker image.
+The default target will build the wheel.
