@@ -9,6 +9,7 @@ import command
 import logconfig
 import monitoringprofile
 import prereq
+import launch
 
 RESTART = -1
 STOP = 0
@@ -39,6 +40,7 @@ def deserialize(data):
     service.ramCommitment = data.get("RAMCommitment", [])
     service.imageID = data.get("ImageID", "")
     service.version = data.get("Version", "")
+    service.launch = launch.deserialize(data.get("Launch", launch.default.name))
     return service
 
 def serialize(service):
@@ -64,6 +66,7 @@ def serialize(service):
     data["RAMCommitment"] = service.ramCommitment
     data["ImageID"] = service.imageID
     data["Version"] = service.version
+    data["Launch"] = launch.serialize(service.launch)
     return data
 
 
@@ -76,7 +79,7 @@ class Service(object):
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
         healthChecks=None, instanceLimits=None, originalConfigs=None, 
         configFiles=None, monitoringProfile=None, tags=None, logConfigs=None, 
-        prereqs=None, ramCommitment=None, imageID = "", version=""):
+        prereqs=None, ramCommitment=None, imageID = "", version="", _launch=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -99,6 +102,7 @@ class Service(object):
         self.ramCommitment = ramCommitment or []
         self.imageID = imageID
         self.version = version
+        self.launch = _launch if _launch else launch.default
 
     def clone(self):
         cl = copy.deepcopy(self)

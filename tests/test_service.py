@@ -776,6 +776,17 @@ class ServiceTest(unittest.TestCase):
         self.assertTrue('baz' in audit.filters, "Failed to alter logconfigs.")
         self.assertEqual(len(svc.logConfigs), 3)
 
+    def test_launch_alter(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(svc.launch, sm.Launch.auto)
+        svc.launch = sm.Launch.manual
+        ctx.commit(OUTFILENAME)
+
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(svc.launch, sm.Launch.manual)
+
     def test_version_alter(self):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
