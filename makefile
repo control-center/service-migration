@@ -11,39 +11,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-IMAGE_NAME      := zenoss/service-migration
-IMAGE_TAG       := $(shell cat servicemigration/VERSION)
-IMAGE_VERSION   := $(shell python -c "print '.'.join('$(IMAGE_TAG)'.split('.')[0])")
-
 PROJECT_DIR      := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 VENV_ACTIVATE_CMD := . $(PROJECT_DIR)/venv/bin/activate
 
-.PHONY: venv
 
-default: buildImage
+default: wheel
 
 clean:
 	rm -f servicemigration/*.pyc
 	rm -f tests/*.pyc
-	rm -rf build/servicemigration
-
-buildImage: copySource
-	docker build -t $(IMAGE_NAME)_v$(IMAGE_VERSION):$(IMAGE_TAG) build
-
-copySource: test clean
-	cp -r servicemigration build/servicemigration
+	rm -rf build
+	rm -rf dist
+	rm -rf $(PROJECT_DIR)/venv
 
 test:
 	python -m unittest discover
 
-pushImage:
-	docker push $(IMAGE_NAME)_v$(IMAGE_VERSION):$(IMAGE_TAG)
-
 wheel: venv
 	$(VENV_ACTIVATE_CMD); \
 	python setup.py bdist_wheel
-	mv dist/* .
-	rm -rf build/bdist.linux-x86_64 build/lib.linux-x86_64-2.7 servicemigration.egg-info dist
 
 example:
 	MIGRATE_INPUTFILE=tests/v1.0.0.json MIGRATE_OUTPUTFILE=out.json python example.py
@@ -52,7 +38,6 @@ run-example:
 	serviced service migrate Zenoss.core example.py
 
 venv:
-	rm -rf $(PROJECT_DIR)/venv
 	virtualenv $(PROJECT_DIR)/venv
 	$(VENV_ACTIVATE_CMD); \
 	pip install -r $(PROJECT_DIR)/requirements.txt
