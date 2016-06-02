@@ -38,6 +38,7 @@ def deserialize(data):
     service.prereqs = prereq.deserialize(data.get("Prereqs", []))
     service.ramCommitment = data.get("RAMCommitment", [])
     service.imageID = data.get("ImageID", "")
+    service.version = data.get("Version", "")
     return service
 
 def serialize(service):
@@ -62,6 +63,7 @@ def serialize(service):
     data["Prereqs"] = prereq.serialize(service.prereqs)
     data["RAMCommitment"] = service.ramCommitment
     data["ImageID"] = service.imageID
+    data["Version"] = service.version
     return data
 
 
@@ -74,7 +76,7 @@ class Service(object):
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
         healthChecks=None, instanceLimits=None, originalConfigs=None, 
         configFiles=None, monitoringProfile=None, tags=None, logConfigs=None, 
-        prereqs=None, ramCommitment=None, imageID = ""):
+        prereqs=None, ramCommitment=None, imageID = "", version=""):
         """
         Internal use only. Do not call to create a service.
         """
@@ -96,6 +98,7 @@ class Service(object):
         self.prereqs = prereqs or []
         self.ramCommitment = ramCommitment or []
         self.imageID = imageID
+        self.version = version
 
     def clone(self):
         cl = copy.deepcopy(self)

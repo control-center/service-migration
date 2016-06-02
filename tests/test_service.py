@@ -776,6 +776,17 @@ class ServiceTest(unittest.TestCase):
         self.assertTrue('baz' in audit.filters, "Failed to alter logconfigs.")
         self.assertEqual(len(svc.logConfigs), 3)
 
+    def test_version_alter(self):
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(svc.version, '')
+        svc.version = '1.0'
+        ctx.commit(OUTFILENAME)
+
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        self.assertEqual(svc.version, '1.0')
+
     def test_clone_service(self):
         """
         Tests cloning a service.

@@ -69,10 +69,6 @@ class ServiceContext(object):
                 self.services.append(service.deserialize(datum))
         else:
             raise exceptions.ServiceMigrationError("Can't read migration input data.")
-        if len(self.services) == 0:
-            self.version = ""
-        else:
-            self.version = self.services[0]._Service__data["Version"]
 
 
     def commit(self, filename=None):
@@ -94,7 +90,6 @@ class ServiceContext(object):
         modifiedServices = []
         for svc in self.services:
             serial = service.serialize(svc)
-            serial["Version"] = self.version
             if serial["ID"] == "new-service":
                 addedServices.append(serial)
             else:
