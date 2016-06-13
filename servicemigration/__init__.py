@@ -12,3 +12,4 @@ from configfile import ConfigFile
 from logconfig import LogConfig
 from launch import Launch
 from prereq import Prereq
+from vhost import VHost
