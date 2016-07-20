@@ -12,12 +12,25 @@
 # limitations under the License.
 
 PROJECT_DIR      := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-VENV_ACTIVATE_CMD := . $(PROJECT_DIR)/venv/bin/activate
 
+# Define the image name, version and tag name for the docker build image
+BUILD_IMAGE = build-tools
+BUILD_VERSION = 0.0.3
+TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
+
+UID := $(shell id -u)
+GID := $(shell id -g)
+
+DOCKER_RUN := docker run --rm \
+                -v $(PWD):/mnt \
+                --user $(UID):$(GID) \
+                $(TAG) \
+                /bin/bash -c
 
 default: wheel
 
 clean:
+	rm -f *.whl
 	rm -f servicemigration/*.pyc
 	rm -f tests/*.pyc
 	rm -rf build
@@ -25,19 +38,14 @@ clean:
 	rm -rf $(PROJECT_DIR)/venv
 
 test:
-	python -m unittest discover
+	$(DOCKER_RUN) "cd /mnt && python -m unittest discover"
 
-wheel: venv
-	$(VENV_ACTIVATE_CMD); \
-	python setup.py bdist_wheel
+wheel:
+	@echo "Building a binary distribution of service-migration"
+	$(DOCKER_RUN) "cd /mnt && python setup.py bdist_wheel"
 
 example:
 	MIGRATE_INPUTFILE=tests/v1.0.0.json MIGRATE_OUTPUTFILE=out.json python example.py
 
 run-example:
 	serviced service migrate Zenoss.core example.py
-
-venv:
-	virtualenv $(PROJECT_DIR)/venv
-	$(VENV_ACTIVATE_CMD); \
-	pip install -r $(PROJECT_DIR)/requirements.txt
