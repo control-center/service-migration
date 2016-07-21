@@ -2,6 +2,9 @@ import os
 
 API_VERSION = open(os.path.join(os.path.dirname(__file__), "VERSION"), 'r').readlines()[0]
 
+# Strip off any "-dev" type of suffixes
+API_VERSION = API_VERSION.split('-')[0]
+
 required = False
 
 def require(version):
@@ -9,6 +12,7 @@ def require(version):
     Ensure compatible versions between API and migration script.
     """
     global required
+
     major = int(API_VERSION.split('.')[0])
     minor = int(API_VERSION.split('.')[1])
     bugfx = int(API_VERSION.split('.')[2])

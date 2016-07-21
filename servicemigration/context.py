@@ -41,7 +41,10 @@ class ServiceContext(object):
         else:
             infile = os.environ["MIGRATE_INPUTFILE"] if "MIGRATE_INPUTFILE" in os.environ else None
 
-        self._client = ControlPlaneClient(**getConnectionSettings())
+	if ZenUtils:
+	    self._client = ControlPlaneClient(**getConnectionSettings())
+	else:
+	    self._client = None
 
         if infile is not None:
             data = json.loads(open(infile, 'r').read())
