@@ -34,5 +34,5 @@ For Zenoss employees, the details on using git-flow to release a version is docu
 on the Zenoss Engineering 
 [web site](https://sites.google.com/a/zenoss.com/engineering/home/faq/developer-patterns/using-git-flow).
 After the git flow process is complete, a jenkins job can be triggered manually to build and 
-publish the image to docker hub. 
+publish the artifact. 
 
