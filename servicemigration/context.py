@@ -53,20 +53,30 @@ class ServiceContext(object):
         else:
             raise exceptions.ServiceMigrationError("Can't find migration input data.")
 
+        def _addService(datum):
+            svc = service.deserialize(datum)
+            self.services.append(svc)
+            self._original[datum["ID"]] = json.dumps(service.serialize(svc), sort_keys=True)
+
         self.services = []
         self.__deploy = []
+        self._dirty = set()
+        self._original = dict()
         if type(data) is dict:
             # Handle the case wherein we are reading from SDK output.
             for datum in data["Modified"]:
-                self.services.append(service.deserialize(datum))
+                _addService(datum)
+                self._dirty.add(datum["ID"])
+            for datum in data["Unmodified"]:
+                _addService(datum)
             for datum in data["Added"]:
-                self.services.append(service.deserialize(datum))
+                _addService(datum)
             for datum in data["Deploy"]:
                 self.__deploy.append(datum)
         elif type(data) is list:
             # Handle the case wherein we are reading from Serviced output.
             for datum in data:
-                self.services.append(service.deserialize(datum))
+                _addService(datum)
         else:
             raise exceptions.ServiceMigrationError("Can't read migration input data.")
         if len(self.services) == 0:
@@ -92,21 +102,26 @@ class ServiceContext(object):
         """
         addedServices = []
         modifiedServices = []
+        unmodifiedServices = []
         for svc in self.services:
             serial = service.serialize(svc)
             serial["Version"] = self.version
             if serial["ID"] == "new-service":
                 addedServices.append(serial)
-            else:
+            elif serial["ID"] in self._dirty:
                 modifiedServices.append(serial)
+            elif json.dumps(serial, sort_keys=True) != self._original[serial["ID"]]:
+                modifiedServices.append(serial)
+            else:
+                unmodifiedServices.append(serial)
         serviceId = self.getTopService()._Service__data["ID"]
         data = {
             "ServiceID": serviceId,
             "Modified": modifiedServices,
+            "Unmodified": unmodifiedServices,
             "Added": addedServices,
             "Deploy": self.__deploy
         }
-        data = json.dumps(data, indent=4, sort_keys=True)
 
         outfile = None
         if filename is not None:
@@ -115,9 +130,12 @@ class ServiceContext(object):
             outfile = os.environ["MIGRATE_OUTPUTFILE"] if "MIGRATE_OUTPUTFILE" in os.environ else None
         if outfile is not None:
             f = open(outfile, 'w')
+            data = json.dumps(data, indent=4, sort_keys=True)
             f.write(data)
             f.close()
         elif ZenUtils:
+            del data["Unmodified"]
+            data = json.dumps(data, indent=4, sort_keys=True)
             self._client.postServicesForMigration(data, serviceId)
         else:
             raise exceptions.ServiceMigrationError("Can't find migration output location.")

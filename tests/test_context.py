@@ -1,4 +1,5 @@
 import unittest
+import json
 import os
 
 import servicemigration as sm
@@ -225,3 +226,34 @@ class ContextTest(unittest.TestCase):
         deployed = filter(lambda d: d["Service"]["Name"] == "deployed-service", ctx._ServiceContext__deploy)
         self.assertEqual(len(deployed), 1)
         self.assertEqual(deployed[0]["ParentID"], core._Service__data["ID"])
+
+
+    def test_unmodified(self):
+        newName = 'foo-bar'
+        ctx = sm.ServiceContext(INFILENAME)
+        core = filter(lambda s: s.name == "Zenoss.core", ctx.services)[0]
+        core.imageID = newName
+        ctx.commit(OUTFILENAME)
+        before = json.load(open(INFILENAME, 'r'))
+        after = json.load(open(OUTFILENAME, 'r'))
+        self.assertEqual(len(after["Modified"]), 1)
+        self.assertEqual(len(after["Unmodified"]), len(before) - 1)
+        self.assertEqual(after["Modified"][0]["ImageID"], newName)
+
+
+    def test_unmodifiedLoad(self):
+        newName = 'foo-bar'
+        ctx = sm.ServiceContext(INFILENAME)
+        core = filter(lambda s: s.name == "Zenoss.core", ctx.services)[0]
+        core.imageID = newName
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        zope = filter(lambda s: s.name == "Zope", ctx.services)[0]
+        zope.imageID = newName
+        ctx.commit(OUTFILENAME)
+        before = json.load(open(INFILENAME, 'r'))
+        after = json.load(open(OUTFILENAME, 'r'))
+        self.assertEqual(len(after["Modified"]), 2)
+        self.assertEqual(len(after["Unmodified"]), len(before) - 2)
+        self.assertEqual(after["Modified"][0]["ImageID"], newName)
+        self.assertEqual(after["Modified"][1]["ImageID"], newName)
