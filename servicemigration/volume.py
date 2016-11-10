@@ -18,10 +18,10 @@ def deserialize(data):
     for volume in data:
         v = Volume()
         v._Volume__data = volume
-        v.owner = volume["Owner"]
-        v.permission = volume["Permission"]
-        v.resourcePath = volume["ResourcePath"]
-        v.containerPath = volume["ContainerPath"]
+        v.owner = volume.get("Owner", "")
+        v.permission = volume.get("Permission", "")
+        v.resourcePath = volume.get("ResourcePath", "")
+        v.containerPath = volume.get("ContainerPath", "")
         volumes.append(v)
     return volumes
 

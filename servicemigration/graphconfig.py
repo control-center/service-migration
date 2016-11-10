@@ -37,7 +37,7 @@ def deserialize(data):
     for d in data:
         gc = GraphConfig()
         gc._GraphConfig__data = d
-        gc.graphID = d["id"]
+        gc.graphID = d.get("id", "")
         gc.name = d.get("name")
         gc.description = d.get("description")
         gc.datapoints = graphdatapoint.deserialize(d.get("datapoints", []))

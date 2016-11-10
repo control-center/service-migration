@@ -18,10 +18,10 @@ def deserialize(data):
         cf = ConfigFile()
         cf._ConfigFile__data = v
         cf.name = k
-        cf.filename = v["Filename"]
-        cf.owner = v["Owner"]
-        cf.permissions = v["Permissions"]
-        cf.content = v["Content"]
+        cf.filename = v.get("Filename", "")
+        cf.owner = v.get("Owner", "")
+        cf.permissions = v.get("Permissions", "")
+        cf.content = v.get("Content", "")
         configfiles.append(cf)
     return configfiles
 

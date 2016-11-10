@@ -21,7 +21,7 @@ def deserialize(data):
     for d in data:
         m = Metric()
         m._Metric__data = d
-        m.ID = d["ID"]
+        m.ID = d.get("ID", "")
         m.name = d.get("Name")
         m.description = d.get("Description")
         m.unit = d.get("Unit")
