@@ -27,7 +27,7 @@ def deserialize(data):
     for d in data:
         p = GraphDatapoint()
         p._GraphDatapoint__data = d
-        p.pointID = d["id"]
+        p.pointID = d.get("id", "")
         p.name = d.get("name")
         p.aggregator = d.get("aggregator")
         p.color = d.get("color")
