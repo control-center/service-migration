@@ -38,12 +38,12 @@ def deserialize(data):
     for ep in data:
         endpoint = Endpoint()
         endpoint._Endpoint__data = ep
-        endpoint.name = ep["Name"]
-        endpoint.purpose = ep["Purpose"]
-        endpoint.application = ep["Application"]
-        endpoint.portnumber = ep["PortNumber"]
-        endpoint.porttemplate = ep["PortTemplate"]
-        endpoint.protocol = ep["Protocol"]
+        endpoint.name = ep.get("Name", "")
+        endpoint.purpose = ep.get("Purpose", "")
+        endpoint.application = ep.get("Application", "")
+        endpoint.portnumber = ep.get("PortNumber", 0)
+        endpoint.porttemplate = ep.get("PortTemplate", "")
+        endpoint.protocol = ep.get("Protocol", "")
         endpoint.addressConfig = config.deserialize(ep.get("AddressConfig", {}))
         endpoint.applicationtemplate = ep.get("ApplicationTemplate", "")
         endpoints.append(endpoint)
