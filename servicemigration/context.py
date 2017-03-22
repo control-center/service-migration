@@ -105,9 +105,6 @@ class ServiceContext(object):
         unmodifiedServices = []
         for svc in self.services:
             serial = service.serialize(svc)
-            # Only update version if it is non-empty
-            if self.version:
-                serial["Version"] = self.version
             if serial["ID"] == "new-service":
                 addedServices.append(serial)
             elif serial["ID"] in self._dirty:
