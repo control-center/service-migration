@@ -25,12 +25,14 @@ class ContextTest(unittest.TestCase):
     def test_ctx_versioning(self):
         """
         Tests ServiceContext versioning
+        Which has been removed
         """
         ctx = sm.ServiceContext(INFILENAME)
+        self.assertEqual(ctx.version, "")
         ctx.version = "foo.bar.baz"
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
-        self.assertEqual(ctx.version, "foo.bar.baz")
+        self.assertEqual(ctx.version, "")
 
     def test_sdk_versioning_major_big(self):
         major = int(sm.version.API_VERSION.split('.')[0]) + 1
