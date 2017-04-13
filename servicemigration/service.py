@@ -101,7 +101,7 @@ class Service(object):
         self.prereqs = prereqs or []
         self.ramCommitment = ramCommitment or []
         self.imageID = imageID
-        self.emergencyShutdown = emergencyShutdownLevel
+        self.emergencyShutdownLevel = emergencyShutdownLevel
         self.startLevel = startLevel
 
     def clone(self):
