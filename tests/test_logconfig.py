@@ -16,11 +16,8 @@ class LogConfigTest(unittest.TestCase):
         ctx = sm.ServiceContext(INFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
         self.assertEqual(len(svc.logConfigs), 3)
-        svc.logConfigs.append(sm.LogConfig(path="/opt/zenoss/log/honk.log",
-                                           logType="honk",
-                                           filters=None,
-                                           logTags=None,
-                                           isAudit=False))
+        svc.logConfigs.append(
+                sm.LogConfig(path="/opt/zenoss/log/honk.log", logType="honk"))
         ctx.commit(OUTFILENAME)
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
@@ -90,13 +87,13 @@ class LogConfigTest(unittest.TestCase):
 
         # The default value is True
         for lc in svc.logConfigs:
-            self.assertEqual(lc.isAudit, True)
+            self.assertEqual(lc.isAudit, False)
 
-        svc.logConfigs[0].isAudit = False
+        svc.logConfigs[0].isAudit = True
         ctx.commit(OUTFILENAME)
 
         ctx = sm.ServiceContext(OUTFILENAME)
         svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
-        self.assertEqual(svc.logConfigs[0].isAudit, False)
-        self.assertEqual(svc.logConfigs[1].isAudit, True)
-        self.assertEqual(svc.logConfigs[2].isAudit, True)
+        self.assertEqual(svc.logConfigs[0].isAudit, True)
+        self.assertEqual(svc.logConfigs[1].isAudit, False)
+        self.assertEqual(svc.logConfigs[2].isAudit, False)
