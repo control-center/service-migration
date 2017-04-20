@@ -6,11 +6,9 @@ import logtag
 default = {
     "Path": "",
     "Type": "",
-    "Filters": [],
-    "LogTags": [
-        copy.deepcopy(logtag.default),
-        ],
-    "IsAudit": True,
+    "Filters": None,
+    "LogTags": None,
+    "IsAudit": False,
 }
 
 
@@ -30,7 +28,7 @@ def deserialize(data):
         lc.logTags = logtag.deserialize(d.get("LogTags", default["LogTags"]))
         lc.isAudit = d.get("IsAudit", default["IsAudit"])
         logconfigs.append(lc)
-    return logconfigs
+    return logconfigs or None
 
 
 def serialize(logconfigs):
@@ -46,7 +44,7 @@ def serialize(logconfigs):
         d["LogTags"] = logtag.serialize(lc.logTags)
         d["IsAudit"] = lc.isAudit
         data.append(d)
-    return data
+    return data or None
 
 
 class LogConfig(object):
@@ -54,10 +52,10 @@ class LogConfig(object):
     A collection of path and type info, filters, and tags.
     """
 
-    def __init__(self, path="", logType="", filters=None, logTags=None, isAudit=True):
+    def __init__(self, path="", logType="", filters=None, logTags=None, isAudit=False):
         self.__data = copy.deepcopy(default)
         self.path = path
         self.logType = logType
-        self.filters = filters or []
-        self.logTags = logTags or []
+        self.filters = filters
+        self.logTags = logTags
         self.isAudit = isAudit

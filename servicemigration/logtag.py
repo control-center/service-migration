@@ -22,7 +22,7 @@ def deserialize(data):
         if datum.get("Value"):
             tag.value = datum["Value"]
         tags.append(tag)
-    return tags
+    return tags or None
 
 
 def serialize(tags):
@@ -30,14 +30,15 @@ def serialize(tags):
     Serializes a single LogTag.
     """
     data = []
-    for tag in tags:
-        datum = copy.deepcopy(tag._LogTag__data)
-        datum.update({
-            "Name": tag.name,
-            "Value": tag.value,
-        })
-        data.append(datum)
-    return data
+    if tags:
+        for tag in tags:
+            datum = copy.deepcopy(tag._LogTag__data)
+            datum.update({
+                "Name": tag.name,
+                "Value": tag.value,
+            })
+            data.append(datum)
+    return data or None
 
 
 class LogTag(object):
