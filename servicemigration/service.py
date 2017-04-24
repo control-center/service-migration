@@ -29,6 +29,7 @@ def deserialize(data):
     service.commands = command.deserialize(data.get("Commands", {}))
     service.volumes = volume.deserialize(data.get("Volumes", []))
     service.healthChecks = healthcheck.deserialize(data.get("HealthChecks", {}))
+    service.instances = data.get("Instances", 0)
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
     service.originalConfigs = configfile.deserialize(data.get("OriginalConfigs", {}))
     service.configFiles = configfile.deserialize(data.get("ConfigFiles", {}))
@@ -55,6 +56,7 @@ def serialize(service):
     data["Commands"] = command.serialize(service.commands)
     data["Volumes"] = volume.serialize(service.volumes)
     data["HealthChecks"] = healthcheck.serialize(service.healthChecks)
+    data["Instances"] = service.instances
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
     data["OriginalConfigs"] = configfile.serialize(service.originalConfigs)
     data["ConfigFiles"] = configfile.serialize(service.configFiles)
@@ -76,10 +78,10 @@ class Service(object):
 
     def __init__(self, name="", description="", startup="",
         desiredState=STOP, endpoints=None, commands=None, volumes=None,
-        healthChecks=None, instanceLimits=None, originalConfigs=None, 
-        configFiles=None, monitoringProfile=None, tags=None, logConfigs=None, 
+        healthChecks=None, instanceLimits=None, originalConfigs=None,
+        configFiles=None, monitoringProfile=None, tags=None, logConfigs=None,
         prereqs=None, ramCommitment=None, imageID = "", emergencyShutdownLevel=0,
-        startLevel=0):
+        startLevel=0, instances=0):
         """
         Internal use only. Do not call to create a service.
         """
@@ -92,6 +94,7 @@ class Service(object):
         self.commands = commands or []
         self.volumes = volumes or []
         self.healthChecks = healthChecks or []
+        self.instances = 0
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
         self.originalConfigs = originalConfigs or []
         self.configFiles = configFiles or []
