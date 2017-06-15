@@ -16,6 +16,7 @@ default = {
         "Protocol": ""
     },
     "VHosts": None,
+    "VHostList": [],
     "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -46,6 +47,7 @@ def deserialize(data):
         endpoint.protocol = ep.get("Protocol", "")
         endpoint.addressConfig = config.deserialize(ep.get("AddressConfig", {}))
         endpoint.applicationtemplate = ep.get("ApplicationTemplate", "")
+        endpoint.vhostlist = ep.get("VHostList", [])
         endpoints.append(endpoint)
     return endpoints
 
@@ -65,6 +67,7 @@ def serialize(endpoints):
         d["Protocol"] = ep.protocol
         d["AddressConfig"] = config.serialize(ep.addressConfig)
         d["ApplicationTemplate"] = ep.applicationtemplate
+        d["VHostList"] = ep.vhostlist
         data.append(d)
     return data
 
@@ -75,7 +78,7 @@ class Endpoint(object):
     """
     def __init__(self, name="", purpose="", application="", portnumber=0,
                  protocol="", addressConfig=None, applicationtemplate="",
-                 porttemplate=""):
+                 porttemplate="", vhostlist=[]):
         self.__data = copy.deepcopy(default)
         self.name = name
         self.purpose = purpose
@@ -85,3 +88,4 @@ class Endpoint(object):
         self.protocol = protocol
         self.addressConfig = config.AddressConfig() if addressConfig is None else addressConfig
         self.applicationtemplate = applicationtemplate
+        self.vhostlist = vhostlist
