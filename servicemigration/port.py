@@ -13,6 +13,8 @@ def deserialize(data):
     :param data:
     :return: a list of Port instances
     """
+    if data is None:
+        return []
     ports = []
     for p in data:
         port = Port()
