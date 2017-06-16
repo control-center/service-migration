@@ -1,6 +1,8 @@
 import copy
 
 import addressconfig as config
+import port
+import vhost
 
 default = {
     "Name": "",
@@ -48,8 +50,8 @@ def deserialize(data):
         endpoint.protocol = ep.get("Protocol", "")
         endpoint.addressConfig = config.deserialize(ep.get("AddressConfig", {}))
         endpoint.applicationtemplate = ep.get("ApplicationTemplate", "")
-        endpoint.vhostlist = ep.get("VHostList", [])
-        endpoint.portlist = ep.get("PortList", [])
+        endpoint.vhostlist = vhost.deserialize(ep.get("VHostList", []))
+        endpoint.portlist = port.deserialize(ep.get("PortList", []))
         endpoints.append(endpoint)
     return endpoints
 
@@ -69,8 +71,8 @@ def serialize(endpoints):
         d["Protocol"] = ep.protocol
         d["AddressConfig"] = config.serialize(ep.addressConfig)
         d["ApplicationTemplate"] = ep.applicationtemplate
-        d["VHostList"] = ep.vhostlist
-        d["PortList"] = ep.portlist
+        d["VHostList"] = vhost.serialize(ep.vhostlist)
+        d["PortList"] = port.serialize(ep.portlist)
         data.append(d)
     return data
 
