@@ -11,5 +11,3 @@ from instancelimits import InstanceLimits
 from configfile import ConfigFile
 from logconfig import LogConfig
 from prereq import Prereq
-from port import Port
-from vhost import VHost
