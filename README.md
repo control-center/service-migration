@@ -1,6 +1,8 @@
 # service-migration
 This repo contains the scripts and Docker container used to perform service migration in Control Center.
 
+blah blah
+
 ## Overview
 The service migration is implemented as a python script defined by each service developer.
 The script uses the service migration SDK defined in this repo to perform operations
