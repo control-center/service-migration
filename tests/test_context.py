@@ -259,3 +259,57 @@ class ContextTest(unittest.TestCase):
         self.assertEqual(len(after["Unmodified"]), len(before) - 2)
         self.assertEqual(after["Modified"][0]["ImageID"], newName)
         self.assertEqual(after["Modified"][1]["ImageID"], newName)
+
+    def test_simple_addLogFilter(self):
+        """
+        Tests adding a new log filter
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        ctx.addLogFilter("test", "somefilter")
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+
+        filters = ctx._ServiceContext__logFilters
+        self.assertEqual(len(filters), 1)
+        self.assertEqual(filters["test"]["Name"], "test")
+        self.assertEqual(filters["test"]["Filter"], "somefilter")
+
+        # in a unit-test scenario we don't have Version, but in production
+        # it should be Products.ZenModel.ZVersion.VERSION
+        self.assertEqual(filters["test"]["Version"], "")
+
+    def test_addLogFilter_accumulates(self):
+        """
+        Tests that multiple calls to addLogFilter will accumulate a list of filters
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        ctx.addLogFilter("test1", "somefilter1")
+        ctx.commit(OUTFILENAME)
+
+        ctx = sm.ServiceContext(OUTFILENAME)
+        ctx.addLogFilter("test2", "somefilter2")
+        ctx.commit(OUTFILENAME)
+
+        filters = ctx._ServiceContext__logFilters
+        self.assertEqual(len(filters), 2)
+        self.assertEqual(filters["test1"]["Name"], "test1")
+        self.assertEqual(filters["test1"]["Filter"], "somefilter1")
+        self.assertEqual(filters["test2"]["Name"], "test2")
+        self.assertEqual(filters["test2"]["Filter"], "somefilter2")
+
+    def test_addLogFilter_keepsLast(self):
+        """
+        Tests that multiple calls to addLogFilter with the same named filter will only keep the last one.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        ctx.addLogFilter("test", "somefilter1")
+        ctx.commit(OUTFILENAME)
+
+        ctx = sm.ServiceContext(OUTFILENAME)
+        ctx.addLogFilter("test", "somefilter2")
+        ctx.commit(OUTFILENAME)
+
+        filters = ctx._ServiceContext__logFilters
+        self.assertEqual(len(filters), 1)
+        self.assertEqual(filters["test"]["Name"], "test")
+        self.assertEqual(filters["test"]["Filter"], "somefilter2")

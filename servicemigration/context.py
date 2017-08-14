@@ -7,6 +7,7 @@ import copy
 try:
     from Products.ZenUtils.controlplane.application import getConnectionSettings
     from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+    from Products.ZenModel.ZVersion import VERSION
     ZenUtils = True
 except:
     ZenUtils = False
@@ -60,6 +61,7 @@ class ServiceContext(object):
 
         self.services = []
         self.__deploy = []
+        self.__logFilters = dict()
         self._dirty = set()
         self._original = dict()
         if type(data) is dict:
@@ -73,6 +75,7 @@ class ServiceContext(object):
                 _addService(datum)
             for datum in data["Deploy"]:
                 self.__deploy.append(datum)
+            self.__logFilters = data["LogFilters"]
         elif type(data) is list:
             # Handle the case wherein we are reading from Serviced output.
             for datum in data:
@@ -119,7 +122,8 @@ class ServiceContext(object):
             "Modified": modifiedServices,
             "Unmodified": unmodifiedServices,
             "Added": addedServices,
-            "Deploy": self.__deploy
+            "Deploy": self.__deploy,
+            "LogFilters": self.__logFilters
         }
 
         outfile = None
@@ -228,3 +232,14 @@ class ServiceContext(object):
         if len(svcs) != 1:
             raise Exception("Couldn't find the proper parent service.")
         self.deployService(service, svcs[0])
+
+    def addLogFilter(self, name, value):
+        """
+        Add a log filter.
+        """
+        zenossVersion = VERSION if ZenUtils else ""
+        self.__logFilters[name] = {
+            "Name": name,
+            "Filter": value,
+            "Version": zenossVersion
+        }
