@@ -44,7 +44,7 @@ def deserialize(data):
     service.changeOptions = data.get("ChangeOptions", [])
     service.hostPolicy = data.get("HostPolicy", "")
     service.privileged = data.get("Privileged", False)
-    service.environment = data["Environment"][:] if data.get("Envrionment") is not None else []
+    service.environment = data["Environment"][:] if data.get("Environment") is not None else []
     return service
 
 def serialize(service):
