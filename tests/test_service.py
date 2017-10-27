@@ -725,3 +725,29 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(clone.description, redis.description)
         self.assertEqual(len(ctx.services), 35)
 
+
+    def test_environment_add(self):
+        """
+        Tests adding environment to a service.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda s: s.name == "opentsdb", ctx.services)[0]
+        svc.environment = ["unlikely_env_1", "unlikely_env_2"]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda s: s.name == "opentsdb", ctx.services)[0]
+        self.assertEqual(len(svc.environment), 2)
+
+    def test_environment_filter(self):
+        """
+        Tests filtering on environment
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda s: s.name == "opentsdb", ctx.services)[0]
+        svc.environment = ["unlikely_env_1", "unlikely_env_2"]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svcs = filter(lambda s: "unlikely_env_1" in s.environment and "unlikely_env_2" in s.environment, ctx.services)
+        self.assertEqual(len(svcs), 1)
+
+
