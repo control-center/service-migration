@@ -750,4 +750,17 @@ class ServiceTest(unittest.TestCase):
         svcs = filter(lambda s: "unlikely_env_1" in s.environment and "unlikely_env_2" in s.environment, ctx.services)
         self.assertEqual(len(svcs), 1)
 
-
+    def test_context_variable_add(self):
+        """
+        Tests adding context_variable to a service.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        top = ctx.getTopService()
+        self.assertEqual(33 , len(top.context))
+        top.context['test_var'] = "test_val"
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        top = ctx.getTopService()
+        self.assertEqual(34 , len(top.context))
+        self.assertTrue('test_var' in top.context)
+        self.assertEqual('test_val' , top.context['test_var'])
