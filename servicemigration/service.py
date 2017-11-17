@@ -45,6 +45,7 @@ def deserialize(data):
     service.hostPolicy = data.get("HostPolicy", "")
     service.privileged = data.get("Privileged", False)
     service.environment = data["Environment"][:] if data.get("Environment") is not None else []
+    service.context = data["Context"].copy() if data.get("Context") is not None else {}
     return service
 
 def serialize(service):
@@ -76,6 +77,7 @@ def serialize(service):
     data["HostPolicy"] = service.hostPolicy
     data["Privileged"] = service.privileged
     data["Environment"] = service.environment[:]
+    data["Context"] = service.context.copy()
     return data
 
 
@@ -90,7 +92,7 @@ class Service(object):
         configFiles=None, monitoringProfile=None, tags=None, logConfigs=None,
         prereqs=None, ramCommitment=None, imageID = "", emergencyShutdownLevel=0,
         startLevel=0, instances=0, changeOptions=None, hostPolicy="",
-        privileged=False, environment=None):
+        privileged=False, environment=None, context=None):
         """
         Internal use only. Do not call to create a service.
         """
@@ -119,6 +121,7 @@ class Service(object):
         self.hostPolicy = hostPolicy
         self.privileged = privileged
         self.environment = environment or []
+        self.context = context or {}
 
     def clone(self):
         cl = copy.deepcopy(self)
