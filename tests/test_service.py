@@ -332,6 +332,23 @@ class ServiceTest(unittest.TestCase):
                 self.assertEqual(hc.script, "baz")
         self.assertEqual(len(svc.healthChecks), 2)
 
+    def test_healthchecks_killcodes(self):
+        """
+        Test that our healthcheck kill codes load/save.
+        """
+        ctx = sm.ServiceContext(INFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        svc.healthChecks = [
+            sm.HealthCheck(name="foo", script="bar", kill_count_limit=3, kill_exit_codes=[28]),
+        ]
+        ctx.commit(OUTFILENAME)
+        ctx = sm.ServiceContext(OUTFILENAME)
+        svc = filter(lambda x: x.description == "Zope server", ctx.services)[0]
+        hc = filter(lambda x: x.name == "foo", svc.healthChecks)[0]
+        self.assertEqual(hc.kill_count_limit, 3)
+        self.assertEqual(len(hc.kill_exit_codes), 1)
+        self.assertEqual(hc.kill_exit_codes[0], 28)
+
     def test_add_prereqs(self):
         # Reset
         ctx = sm.ServiceContext(INFILENAME)
