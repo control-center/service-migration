@@ -32,6 +32,9 @@ def deserialize(data):
     service.instances = data.get("Instances", 0)
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
     service.originalConfigs = configfile.deserialize(data.get("OriginalConfigs", {}))
+    service.pidFile = data.get("PIDFile", "")
+    service.oomKillDisable = data.get("OomKillDisable", False)
+    service.oomScoreAdj = data.get("OomScoreAdj", 0)
     service.configFiles = configfile.deserialize(data.get("ConfigFiles", {}))
     service.monitoringProfile = monitoringprofile.deserialize(data.get("MonitoringProfile", {}))
     service.tags = data["Tags"][:] if data.get("Tags") is not None else []
@@ -64,6 +67,9 @@ def serialize(service):
     data["Instances"] = service.instances
     data["InstanceLimits"] = instancelimits.serialize(service.instanceLimits)
     data["OriginalConfigs"] = configfile.serialize(service.originalConfigs)
+    data["OomKillDisable"] = service.oomKillDisable
+    data["OomScoreAdj"] = service.oomScoreAdj
+    data["PIDFile"] = service.pidFile
     data["ConfigFiles"] = configfile.serialize(service.configFiles)
     data["MonitoringProfile"] = monitoringprofile.serialize(service.monitoringProfile)
     data["Tags"] = service.tags[:]
@@ -92,7 +98,8 @@ class Service(object):
         configFiles=None, monitoringProfile=None, tags=None, logConfigs=None,
         prereqs=None, ramCommitment=None, imageID = "", emergencyShutdownLevel=0,
         startLevel=0, instances=0, changeOptions=None, hostPolicy="",
-        privileged=False, environment=None, context=None):
+        privileged=False, environment=None, context=None, oomKillDisable=False,
+        oomScoreAdj=0, pidFile=""):
         """
         Internal use only. Do not call to create a service.
         """
@@ -108,6 +115,9 @@ class Service(object):
         self.instances = 0
         self.instanceLimits = instancelimits.InstanceLimits() if instanceLimits is None else instanceLimits
         self.originalConfigs = originalConfigs or []
+        self.oomKillDisable = oomKillDisable
+        self.oomScoreAdj = oomScoreAdj
+        self.pidFile = pidFile
         self.configFiles = configFiles or []
         self.monitoringProfile = monitoringProfile
         self.tags = tags or []
