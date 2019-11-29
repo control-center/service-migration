@@ -33,7 +33,7 @@ def deserialize(data):
     service.instanceLimits = instancelimits.deserialize(data.get("InstanceLimits", {}))
     service.originalConfigs = configfile.deserialize(data.get("OriginalConfigs", {}))
     service.pidFile = data.get("PIDFile", "")
-    service.runAs = data.get("RunAs", "")
+    service.runAs = data.get("RunAs", "zenoss")
     service.oomKillDisable = data.get("OomKillDisable", False)
     service.oomScoreAdj = data.get("OomScoreAdj", 0)
     service.configFiles = configfile.deserialize(data.get("ConfigFiles", {}))
